@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wat doe jij?</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #d7dbe2;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /* =========================================
+       TELEFOON
+    ========================================= */
+
+    .phone {
+      position: relative;
+
+      width: 390px;
+      height: 820px;
+
+      background: #111216;
+      border: 8px solid #111216;
+      border-radius: 48px;
+
+      box-shadow:
+        0 30px 70px rgba(0, 0, 0, 0.30),
+        0 10px 25px rgba(0, 0, 0, 0.18);
+
+      overflow: visible;
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      inset: -3px;
+      border: 1px solid #555861;
+      border-radius: 51px;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* Zijknoppen */
+
+    .volume-up,
+    .volume-down,
+    .silent-button,
+    .power-button {
+      position: absolute;
+      background: #17181c;
+      border-radius: 4px;
+    }
+
+    .volume-up {
+      left: -12px;
+      top: 145px;
+      width: 4px;
+      height: 52px;
+    }
+
+    .volume-down {
+      left: -12px;
+      top: 215px;
+      width: 4px;
+      height: 52px;
+    }
+
+    .silent-button {
+      left: -12px;
+      top: 90px;
+      width: 4px;
+      height: 30px;
+    }
+
+    .power-button {
+      right: -12px;
+      top: 175px;
+      width: 4px;
+      height: 75px;
+    }
+
+    /* =========================================
+       SCHERM
+    ========================================= */
+
+    .screen {
+      width: 100%;
+      height: 100%;
+
+      background: #f5f6fa;
+
+      border-radius: 40px;
+      overflow: hidden;
+
+      display: flex;
+      flex-direction: column;
+
+      position: relative;
+    }
+
+    /* Dynamic Island */
+
+    .dynamic-island {
+      position: absolute;
+
+      top: 10px;
+      left: 50%;
+
+      transform: translateX(-50%);
+
+      width: 110px;
+      height: 29px;
+
+      background: #090a0c;
+      border-radius: 20px;
+
+      z-index: 10;
+    }
+
+    .camera {
+      position: absolute;
+      right: 13px;
+      top: 9px;
+
+      width: 8px;
+      height: 8px;
+
+      background: #252933;
+      border-radius: 50%;
+    }
+
+    /* =========================================
+       STATUSBAR
+    ========================================= */
+
+    .statusbar {
+      height: 48px;
+
+      padding: 8px 20px 0;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      font-size: 12px;
+      font-weight: bold;
+
+      background: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .status-icons {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* =========================================
+       HEADER
+    ========================================= */
+
+    header {
+      background: #ffffff;
+
+      padding: 13px 22px 19px;
+
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      margin: 0;
+
+      font-size: 27px;
+      line-height: 1.1;
+
+      letter-spacing: -0.7px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+
+      color: #777e8a;
+      font-size: 14px;
+    }
+
+    /* =========================================
+       CONTENT
+    ========================================= */
+
+    .content {
+      flex: 1;
+
+      overflow-y: auto;
+
+      padding: 20px 18px 35px;
+
+      scrollbar-width: none;
+    }
+
+    .content::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* =========================================
+       SITUATIES
+    ========================================= */
+
+    .situations {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .situation-card {
+      min-height: 105px;
+
+      background: #ffffff;
+
+      border-radius: 18px;
+      padding: 20px;
+
+      display: flex;
+      align-items: center;
+
+      cursor: pointer;
+
+      border: 2px solid transparent;
+
+      box-shadow:
+        0 3px 12px rgba(0, 0, 0, 0.06);
+
+      transition: 0.15s ease;
+    }
+
+    .situation-card:hover {
+      border-color: #6876e5;
+      transform: translateY(-2px);
+    }
+
+    .situation-card:active {
+      transform: scale(0.98);
+    }
+
+    .situation-number {
+      width: 42px;
+      height: 42px;
+
+      flex-shrink: 0;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 50%;
+
+      background: #eef0ff;
+      color: #5262d5;
+
+      font-size: 15px;
+      font-weight: bold;
+
+      margin-right: 15px;
+    }
+
+    .situation-card h2 {
+      margin: 0;
+
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .arrow {
+      margin-left: auto;
+      padding-left: 10px;
+
+      color: #6975d8;
+      font-size: 22px;
+    }
+
+    /* =========================================
+       DETAIL
+    ========================================= */
+
+    .back-button {
+      border: none;
+      background: transparent;
+
+      color: #5262d5;
+
+      padding: 0 0 18px;
+
+      font-size: 14px;
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    .detail-card {
+      background: #ffffff;
+
+      border-radius: 20px;
+
+      padding: 20px;
+
+      box-shadow:
+        0 3px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .detail-card h2 {
+      margin: 0 0 15px;
+
+      font-size: 23px;
+      line-height: 1.3;
+    }
+
+    .detail-text {
+      color: #555c67;
+
+      font-size: 15px;
+      line-height: 1.65;
+
+      margin-bottom: 25px;
+    }
+
+    .question {
+      font-size: 21px;
+      font-weight: bold;
+
+      margin-bottom: 13px;
+    }
+
+    /* =========================================
+       ACTIES
+    ========================================= */
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .action-button {
+      width: 100%;
+
+      padding: 16px;
+
+      border: 2px solid #e0e3e9;
+      border-radius: 14px;
+
+      background: #ffffff;
+
+      text-align: left;
+
+      font-size: 14px;
+      line-height: 1.45;
+
+      cursor: pointer;
+
+      transition: 0.15s ease;
+    }
+
+    .action-button:hover {
+      background: #f7f8ff;
+      border-color: #6876e5;
+    }
+
+    .action-button:active {
+      transform: scale(0.98);
+    }
+
+    /* =========================================
+       RESULTAAT
+    ========================================= */
+
+    .result {
+      margin-top: 20px;
+    }
+
+    .result-label {
+      font-size: 12px;
+      font-weight: bold;
+
+      color: #5966a9;
+
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+
+      margin-bottom: 8px;
+    }
+
+    .result-box {
+      padding: 18px;
+
+      background: #eef0ff;
+
+      border: 1px solid #d9ddff;
+
+      border-radius: 16px;
+    }
+
+    .result-box p {
+      margin: 0;
+
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .another-action {
+      border: none;
+      background: transparent;
+
+      padding: 15px 0 0;
+
+      color: #5262d5;
+
+      font-size: 13px;
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    /* =========================================
+       HOME INDICATOR
+    ========================================= */
+
+    .home-area {
+      height: 30px;
+
+      background: #ffffff;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      flex-shrink: 0;
+    }
+
+    .home-indicator {
+      width: 100px;
+      height: 4px;
+
+      background: #17181c;
+      border-radius: 10px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* =========================================
+       KLEINE SCHERMEN
+    ========================================= */
+
+    @media (max-height: 850px) {
+      body {
+        padding: 10px;
+      }
+
+      .phone {
+        height: calc(100vh - 20px);
+      }
+    }
+
+    @media (max-width: 450px) {
+
+      body {
+        padding: 0;
+        background: #f5f6fa;
+      }
+
+      .phone {
+        width: 100%;
+        height: 100vh;
+
+        border: none;
+        border-radius: 0;
+
+        box-shadow: none;
+      }
+
+      .phone::before,
+      .volume-up,
+      .volume-down,
+      .silent-button,
+      .power-button {
+        display: none;
+      }
+
+      .screen {
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+
+
+<body>
+
+  <div class="phone">
+
+    <div class="silent-button"></div>
+    <div class="volume-up"></div>
+    <div class="volume-down"></div>
+    <div class="power-button"></div>
+
+
+    <div class="screen">
+
+      <!-- Dynamic Island -->
+      <div class="dynamic-island">
+        <div class="camera"></div>
+      </div>
+
+
+      <!-- Statusbar -->
+      <div class="statusbar">
+
+        <span id="currentTime">
+          12:00
+        </span>
+
+        <div class="status-icons">
+          <span>●●●</span>
+          <span>▰</span>
+          <span>▰</span>
+        </div>
+
+      </div>
+
+
+      <!-- Header -->
+      <header>
+
+        <h1>
+          Wat doe jij?
+        </h1>
+
+        <p>
+          Kies een situatie.
+        </p>
+
+      </header>
+
+
+      <!-- Content -->
+      <div class="content">
+
+        <!-- =====================================
+             HOOFDSCHERM
+        ====================================== -->
+
+        <section id="overviewScreen">
+
+          <div
+            id="situationsContainer"
+            class="situations"
+          ></div>
+
+        </section>
+
+
+        <!-- =====================================
+             SITUATIE
+        ====================================== -->
+
+        <section
+          id="detailScreen"
+          class="hidden"
+        >
+
+          <button
+            class="back-button"
+            onclick="showOverview()"
+          >
+            ← Alle situaties
+          </button>
+
+
+          <!-- Situatie blijft altijd zichtbaar -->
+
+          <div class="detail-card">
+
+            <h2 id="detailTitle"></h2>
+
+            <div
+              id="detailText"
+              class="detail-text"
+            ></div>
+
+
+            <!-- ACTIESCHERM -->
+
+            <div id="actionScreen">
+
+              <div class="question">
+                Wat doe jij?
+              </div>
+
+              <div
+                id="actionsContainer"
+                class="actions"
+              ></div>
+
+            </div>
+
+
+            <!-- RESULTAATSCHERM -->
+
+            <div
+              id="resultScreen"
+              class="result hidden"
+            >
+
+              <div class="result-label">
+                Jouw keuze
+              </div>
+
+              <div class="result-box">
+
+                <p id="selectedActionText"></p>
+
+              </div>
+
+
+              <button
+                class="another-action"
+                onclick="chooseAnotherAction()"
+              >
+                ← Andere actie kiezen
+              </button>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+
+
+      <!-- Home indicator -->
+      <div class="home-area">
+        <div class="home-indicator"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <script>
+
+    /*
+    ==================================================
+    SITUATIES EN ACTIES
+    ==================================================
+    */
+
+    const situaties = [
+
+      {
+        id: 1,
+
+        titel: "Een gênante foto in de groepsapp",
+
+        tekst:
+          "In de groepsapp wordt een klasgenoot besproken die niet in de groep zit. Iemand stuurt een gênante foto van die persoon en iedereen begint grappige reacties te sturen.",
+
+        acties: [
+          "Je doet mee, want het is maar een grapje.",
+          "Je zegt niets en kijkt alleen mee.",
+          "Je stuurt iets om het gesprek een andere kant op te sturen.",
+          "Je zegt dat je dit niet oké vindt."
+        ]
+      },
+
+
+      {
+        id: 2,
+
+        titel: "Iemand wordt buitengesloten",
+
+        tekst:
+          "Tijdens de pauze zie je dat een klasgenoot steeds alleen staat. Een groepje leerlingen praat met elkaar, maar negeert deze persoon bewust.",
+
+        acties: [
+          "Je loopt door en bemoeit je er niet mee.",
+          "Je maakt een grapje over de situatie.",
+          "Je loopt naar de klasgenoot toe en vraagt of alles goed gaat.",
+          "Je vraagt de groep waarom ze deze persoon buitensluiten."
+        ]
+      },
+
+
+      {
+        id: 3,
+
+        titel: "Een vervelende opmerking",
+
+        tekst:
+          "Tijdens een les maakt iemand een gemene opmerking over het uiterlijk van een andere leerling. Een paar leerlingen lachen erom.",
+
+        acties: [
+          "Je lacht mee zodat je niet buiten de groep valt.",
+          "Je zegt niets.",
+          "Je probeert het onderwerp te veranderen.",
+          "Je zegt dat de opmerking niet aardig is."
+        ]
+      },
+
+
+      {
+        id: 4,
+
+        titel: "Een privébericht doorsturen",
+
+        tekst:
+          "Je krijgt een privébericht van een klasgenoot. Het bericht is duidelijk niet bedoeld voor andere mensen, maar iemand vraagt of je het wilt doorsturen naar de groepsapp.",
+
+        acties: [
+          "Je stuurt het meteen door.",
+          "Je leest het maar doet verder niets.",
+          "Je vraagt eerst toestemming aan de persoon die het stuurde.",
+          "Je zegt dat je privéberichten niet wilt doorsturen."
+        ]
+      }
+
+    ];
+
+
+    /*
+    ==================================================
+    ELEMENTEN
+    ==================================================
+    */
+
+    const overviewScreen =
+      document.getElementById("overviewScreen");
+
+    const detailScreen =
+      document.getElementById("detailScreen");
+
+    const situationsContainer =
+      document.getElementById("situationsContainer");
+
+    const detailTitle =
+      document.getElementById("detailTitle");
+
+    const detailText =
+      document.getElementById("detailText");
+
+    const actionsContainer =
+      document.getElementById("actionsContainer");
+
+    const actionScreen =
+      document.getElementById("actionScreen");
+
+    const resultScreen =
+      document.getElementById("resultScreen");
+
+    const selectedActionText =
+      document.getElementById("selectedActionText");
+
+
+    /*
+    ==================================================
+    TIJD
+    ==================================================
+    */
+
+    function updateTime() {
+
+      const now = new Date();
+
+      const hours =
+        String(now.getHours()).padStart(2, "0");
+
+      const minutes =
+        String(now.getMinutes()).padStart(2, "0");
+
+      document.getElementById("currentTime").textContent =
+        `${hours}:${minutes}`;
+    }
+
+    updateTime();
+
+    setInterval(updateTime, 30000);
+
+
+    /*
+    ==================================================
+    HOOFDSCHERM
+    Alleen de titel wordt getoond.
+    ==================================================
+    */
+
+    function renderSituations() {
+
+      situationsContainer.innerHTML = "";
+
+      situaties.forEach((situatie, index) => {
+
+        const card =
+          document.createElement("div");
+
+        card.className =
+          "situation-card";
+
+
+        card.innerHTML = `
+
+          <div class="situation-number">
+            ${index + 1}
+          </div>
+
+          <h2>
+            ${situatie.titel}
+          </h2>
+
+          <div class="arrow">
+            ›
+          </div>
+
+        `;
+
+
+        card.addEventListener(
+          "click",
+          () => showSituation(situatie.id)
+        );
+
+
+        situationsContainer.appendChild(card);
+
+      });
+    }
+
+
+    /*
+    ==================================================
+    SITUATIE OPENEN
+    ==================================================
+    */
+
+    function showSituation(id) {
+
+      const situatie =
+        situaties.find(
+          item => item.id === id
+        );
+
+
+      if (!situatie) {
+        return;
+      }
+
+
+      /*
+       * Situatie tonen
+       */
+
+      detailTitle.textContent =
+        situatie.titel;
+
+      detailText.textContent =
+        situatie.tekst;
+
+
+      /*
+       * Acties opnieuw opbouwen
+       */
+
+      actionsContainer.innerHTML = "";
+
+
+      situatie.acties.forEach(
+        (actie) => {
+
+          const button =
+            document.createElement("button");
+
+          button.className =
+            "action-button";
+
+          button.textContent =
+            actie;
+
+
+          button.addEventListener(
+            "click",
+            () => selectAction(actie)
+          );
+
+
+          actionsContainer.appendChild(button);
+
+        }
+      );
+
+
+      /*
+       * Acties tonen
+       * Resultaat verbergen
+       */
+
+      actionScreen.classList.remove(
+        "hidden"
+      );
+
+      resultScreen.classList.add(
+        "hidden"
+      );
+
+
+      /*
+       * Naar detailpagina
+       */
+
+      overviewScreen.classList.add(
+        "hidden"
+      );
+
+      detailScreen.classList.remove(
+        "hidden"
+      );
+
+
+      document.querySelector(
+        ".content"
+      ).scrollTop = 0;
+    }
+
+
+    /*
+    ==================================================
+    ACTIE SELECTEREN
+
+    Na selectie verdwijnen de andere acties.
+    De situatie blijft bovenaan zichtbaar.
+    ==================================================
+    */
+
+    function selectAction(actie) {
+
+      selectedActionText.textContent =
+        actie;
+
+
+      /*
+       * Acties verbergen
+       */
+
+      actionScreen.classList.add(
+        "hidden"
+      );
+
+
+      /*
+       * Gekozen actie tonen
+       */
+
+      resultScreen.classList.remove(
+        "hidden"
+      );
+
+
+      /*
+       * Scroll naar de gekozen actie
+       */
+
+      resultScreen.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }
+
+
+    /*
+    ==================================================
+    ANDERE ACTIE KIEZEN
+    ==================================================
+    */
+
+    function chooseAnotherAction() {
+
+      resultScreen.classList.add(
+        "hidden"
+      );
+
+      actionScreen.classList.remove(
+        "hidden"
+      );
+    }
+
+
+    /*
+    ==================================================
+    TERUG NAAR OVERZICHT
+    ==================================================
+    */
+
+    function showOverview() {
+
+      detailScreen.classList.add(
+        "hidden"
+      );
+
+      overviewScreen.classList.remove(
+        "hidden"
+      );
+
+
+      document.querySelector(
+        ".content"
+      ).scrollTop = 0;
+    }
+
+
+    /*
+    ==================================================
+    START
+    ==================================================
+    */
+
+    renderSituations();
+
+  </script>
+
+</body>
+</html>
