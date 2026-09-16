@@ -1,211 +1,244 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
   <title>Wat doe jij?</title>
 
   <style>
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #d7dbe2;
-      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top, #dfe3ff 0%, #b9bfdc 45%, #858ba8 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #1d1d1f;
     }
 
-    /* =========================================
+    /* =========================
        TELEFOON
-    ========================================= */
+    ========================= */
 
     .phone {
       position: relative;
-
       width: 390px;
       height: 820px;
-
-      background: #111216;
-      border: 8px solid #111216;
+      padding: 10px;
+      background: #171717;
       border-radius: 48px;
-
       box-shadow:
-        0 30px 70px rgba(0, 0, 0, 0.30),
-        0 10px 25px rgba(0, 0, 0, 0.18);
-
-      overflow: visible;
+        0 30px 70px rgba(0, 0, 0, 0.35),
+        inset 0 0 0 2px #343434;
     }
 
-    .phone::before {
-      content: "";
-      position: absolute;
-      inset: -3px;
-      border: 1px solid #555861;
-      border-radius: 51px;
-      pointer-events: none;
-      z-index: 20;
+    .screen {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 40px;
+      background: #f7f7fb;
     }
 
     /* Zijknoppen */
 
-    .volume-up,
-    .volume-down,
-    .silent-button,
-    .power-button {
+    .silent-button {
       position: absolute;
-      background: #17181c;
-      border-radius: 4px;
+      left: -4px;
+      top: 130px;
+      width: 4px;
+      height: 30px;
+      border-radius: 3px 0 0 3px;
+      background: #252525;
     }
 
     .volume-up {
-      left: -12px;
-      top: 145px;
+      position: absolute;
+      left: -4px;
+      top: 185px;
       width: 4px;
-      height: 52px;
+      height: 55px;
+      border-radius: 3px 0 0 3px;
+      background: #252525;
     }
 
     .volume-down {
-      left: -12px;
-      top: 215px;
+      position: absolute;
+      left: -4px;
+      top: 250px;
       width: 4px;
-      height: 52px;
-    }
-
-    .silent-button {
-      left: -12px;
-      top: 90px;
-      width: 4px;
-      height: 30px;
+      height: 55px;
+      border-radius: 3px 0 0 3px;
+      background: #252525;
     }
 
     .power-button {
-      right: -12px;
-      top: 175px;
+      position: absolute;
+      right: -4px;
+      top: 205px;
       width: 4px;
-      height: 75px;
+      height: 80px;
+      border-radius: 0 3px 3px 0;
+      background: #252525;
     }
 
-    /* =========================================
-       SCHERM
-    ========================================= */
-
-    .screen {
-      width: 100%;
-      height: 100%;
-
-      background: #f5f6fa;
-
-      border-radius: 40px;
-      overflow: hidden;
-
-      display: flex;
-      flex-direction: column;
-
-      position: relative;
-    }
-
-    /* Dynamic Island */
+    /* Dynamic island */
 
     .dynamic-island {
       position: absolute;
-
+      z-index: 20;
       top: 10px;
       left: 50%;
-
       transform: translateX(-50%);
-
-      width: 110px;
-      height: 29px;
-
-      background: #090a0c;
+      width: 125px;
+      height: 32px;
       border-radius: 20px;
-
-      z-index: 10;
+      background: #000;
     }
 
     .camera {
       position: absolute;
-      right: 13px;
-      top: 9px;
-
-      width: 8px;
-      height: 8px;
-
-      background: #252933;
+      right: 15px;
+      top: 10px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
+      background: #20252d;
+      box-shadow: inset 0 0 0 2px #0c0c0c;
     }
 
-    /* =========================================
-       STATUSBAR
-    ========================================= */
+    /* Statusbar */
 
     .statusbar {
-      height: 48px;
-
-      padding: 8px 20px 0;
-
+      position: absolute;
+      z-index: 10;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: center;
-
+      padding: 0 24px;
       font-size: 12px;
-      font-weight: bold;
-
-      background: #ffffff;
-      flex-shrink: 0;
+      font-weight: 700;
+      pointer-events: none;
     }
 
-    .status-icons {
+    .status-right {
       display: flex;
-      gap: 6px;
       align-items: center;
+      gap: 6px;
+      font-size: 11px;
     }
 
-    /* =========================================
-       HEADER
-    ========================================= */
+    .signal {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 12px;
+    }
+
+    .signal span {
+      display: block;
+      width: 3px;
+      border-radius: 1px;
+      background: #111;
+    }
+
+    .signal span:nth-child(1) {
+      height: 4px;
+    }
+
+    .signal span:nth-child(2) {
+      height: 6px;
+    }
+
+    .signal span:nth-child(3) {
+      height: 9px;
+    }
+
+    .signal span:nth-child(4) {
+      height: 12px;
+    }
+
+    .wifi {
+      font-size: 13px;
+    }
+
+    .battery {
+      position: relative;
+      width: 22px;
+      height: 11px;
+      border: 1.5px solid #111;
+      border-radius: 3px;
+    }
+
+    .battery::after {
+      content: "";
+      position: absolute;
+      right: -3px;
+      top: 3px;
+      width: 2px;
+      height: 4px;
+      border-radius: 0 1px 1px 0;
+      background: #111;
+    }
+
+    .battery-level {
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      bottom: 2px;
+      width: 75%;
+      border-radius: 1px;
+      background: #111;
+    }
+
+    /* =========================
+       APP
+    ========================= */
+
+    .app {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
 
     header {
-      background: #ffffff;
-
-      padding: 13px 22px 19px;
-
-      border-bottom: 1px solid #e5e7eb;
       flex-shrink: 0;
+      padding: 68px 22px 18px;
+      background: #f7f7fb;
     }
 
     header h1 {
-      margin: 0;
-
-      font-size: 27px;
+      font-size: 28px;
       line-height: 1.1;
-
-      letter-spacing: -0.7px;
+      letter-spacing: -0.8px;
+      margin-bottom: 6px;
     }
 
     header p {
-      margin: 6px 0 0;
-
-      color: #777e8a;
+      color: #777b88;
       font-size: 14px;
     }
 
-    /* =========================================
-       CONTENT
-    ========================================= */
-
     .content {
       flex: 1;
-
       overflow-y: auto;
-
-      padding: 20px 18px 35px;
-
+      padding: 0 18px 30px;
       scrollbar-width: none;
     }
 
@@ -213,40 +246,36 @@
       display: none;
     }
 
-    /* =========================================
-       SITUATIES
-    ========================================= */
+    /* =========================
+       OVERZICHT
+    ========================= */
 
     .situations {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
+      padding-top: 4px;
     }
 
     .situation-card {
-      min-height: 105px;
-
-      background: #ffffff;
-
-      border-radius: 18px;
-      padding: 20px;
-
+      position: relative;
       display: flex;
       align-items: center;
-
+      min-height: 82px;
+      padding: 16px 16px 16px 14px;
+      border-radius: 20px;
+      background: white;
+      border: 1px solid #e8e8ee;
+      box-shadow: 0 5px 14px rgba(30, 30, 50, 0.06);
       cursor: pointer;
-
-      border: 2px solid transparent;
-
-      box-shadow:
-        0 3px 12px rgba(0, 0, 0, 0.06);
-
-      transition: 0.15s ease;
+      transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
     }
 
     .situation-card:hover {
-      border-color: #6876e5;
       transform: translateY(-2px);
+      box-shadow: 0 9px 20px rgba(30, 30, 50, 0.1);
     }
 
     .situation-card:active {
@@ -254,267 +283,257 @@
     }
 
     .situation-number {
-      width: 42px;
-      height: 42px;
-
       flex-shrink: 0;
-
+      width: 38px;
+      height: 38px;
       display: flex;
       align-items: center;
       justify-content: center;
-
-      border-radius: 50%;
-
+      margin-right: 13px;
+      border-radius: 12px;
       background: #eef0ff;
       color: #5262d5;
-
-      font-size: 15px;
-      font-weight: bold;
-
-      margin-right: 15px;
+      font-size: 14px;
+      font-weight: 800;
     }
 
     .situation-card h2 {
-      margin: 0;
-
-      font-size: 18px;
+      flex: 1;
+      padding-right: 8px;
+      font-size: 15px;
       line-height: 1.35;
+      font-weight: 700;
     }
 
     .arrow {
-      margin-left: auto;
-      padding-left: 10px;
-
-      color: #6975d8;
-      font-size: 22px;
+      color: #a2a5af;
+      font-size: 25px;
+      line-height: 1;
     }
 
-    /* =========================================
-       DETAIL
-    ========================================= */
+    /* =========================
+       DETAILPAGINA
+    ========================= */
+
+    .hidden {
+      display: none !important;
+    }
 
     .back-button {
+      margin: 4px 0 12px;
+      padding: 7px 0;
       border: none;
       background: transparent;
-
       color: #5262d5;
-
-      padding: 0 0 18px;
-
-      font-size: 14px;
-      font-weight: bold;
-
+      font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
     }
 
     .detail-card {
-      background: #ffffff;
-
-      border-radius: 20px;
-
       padding: 20px;
-
-      box-shadow:
-        0 3px 12px rgba(0, 0, 0, 0.06);
+      border-radius: 24px;
+      background: white;
+      border: 1px solid #e7e7ed;
+      box-shadow: 0 7px 20px rgba(30, 30, 50, 0.07);
     }
 
     .detail-card h2 {
-      margin: 0 0 15px;
-
-      font-size: 23px;
-      line-height: 1.3;
+      font-size: 21px;
+      line-height: 1.25;
+      letter-spacing: -0.3px;
+      margin-bottom: 14px;
     }
 
     .detail-text {
-      color: #555c67;
-
-      font-size: 15px;
-      line-height: 1.65;
-
-      margin-bottom: 25px;
+      color: #555965;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 22px;
     }
 
     .question {
-      font-size: 21px;
-      font-weight: bold;
-
-      margin-bottom: 13px;
+      margin-bottom: 12px;
+      font-size: 17px;
+      font-weight: 800;
     }
-
-    /* =========================================
-       ACTIES
-    ========================================= */
 
     .actions {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 9px;
     }
 
     .action-button {
       width: 100%;
-
-      padding: 16px;
-
-      border: 2px solid #e0e3e9;
+      padding: 13px 14px;
+      border: 1px solid #dedfe7;
       border-radius: 14px;
-
-      background: #ffffff;
-
+      background: #f8f8fb;
+      color: #20212a;
       text-align: left;
-
-      font-size: 14px;
-      line-height: 1.45;
-
+      font-size: 13px;
+      line-height: 1.4;
+      font-weight: 600;
       cursor: pointer;
-
-      transition: 0.15s ease;
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease;
     }
 
     .action-button:hover {
-      background: #f7f8ff;
-      border-color: #6876e5;
+      background: #f0f1ff;
+      border-color: #cdd1ff;
     }
 
     .action-button:active {
       transform: scale(0.98);
     }
 
-    /* =========================================
+    /* =========================
        RESULTAAT
-    ========================================= */
+    ========================= */
 
     .result {
-      margin-top: 20px;
+      margin-top: 4px;
     }
 
     .result-label {
+      margin-bottom: 9px;
+      color: #777b88;
       font-size: 12px;
-      font-weight: bold;
-
-      color: #5966a9;
-
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-
-      margin-bottom: 8px;
+      letter-spacing: 0.7px;
     }
 
     .result-box {
-      padding: 18px;
-
-      background: #eef0ff;
-
-      border: 1px solid #d9ddff;
-
+      padding: 16px;
       border-radius: 16px;
+      background: #eef0ff;
+      border: 1px solid #dce0ff;
     }
 
     .result-box p {
-      margin: 0;
-
-      font-size: 16px;
+      color: #30345b;
+      font-size: 14px;
       line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .result-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .result-buttons button {
+      flex: 1;
+      min-height: 45px;
+      padding: 8px 10px;
+      border: none;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.25;
+      font-weight: 700;
+      cursor: pointer;
+      transition:
+        background 0.15s ease,
+        transform 0.15s ease;
+    }
+
+    .result-buttons button:active {
+      transform: scale(0.97);
     }
 
     .another-action {
-      border: none;
       background: transparent;
-
-      padding: 15px 0 0;
-
       color: #5262d5;
-
-      font-size: 13px;
-      font-weight: bold;
-
-      cursor: pointer;
     }
 
-    /* =========================================
+    .another-action:hover {
+      background: #f1f2ff;
+    }
+
+    .next-action {
+      background: #5262d5;
+      color: white;
+    }
+
+    .next-action:hover {
+      background: #4454c5;
+    }
+
+    /* =========================
        HOME INDICATOR
-    ========================================= */
-
-    .home-area {
-      height: 30px;
-
-      background: #ffffff;
-
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      flex-shrink: 0;
-    }
+    ========================= */
 
     .home-indicator {
-      width: 100px;
-      height: 4px;
-
-      background: #17181c;
+      position: absolute;
+      z-index: 30;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 130px;
+      height: 5px;
       border-radius: 10px;
+      background: #111;
+      opacity: 0.9;
     }
 
-    .hidden {
-      display: none !important;
-    }
-
-    /* =========================================
-       KLEINE SCHERMEN
-    ========================================= */
-
-    @media (max-height: 850px) {
-      body {
-        padding: 10px;
-      }
-
-      .phone {
-        height: calc(100vh - 20px);
-      }
-    }
+    /* =========================
+       RESPONSIVE
+    ========================= */
 
     @media (max-width: 450px) {
-
       body {
-        padding: 0;
-        background: #f5f6fa;
+        display: block;
+        background: #f7f7fb;
       }
 
       .phone {
-        width: 100%;
+        width: 100vw;
         height: 100vh;
-
-        border: none;
+        padding: 0;
         border-radius: 0;
-
         box-shadow: none;
-      }
-
-      .phone::before,
-      .volume-up,
-      .volume-down,
-      .silent-button,
-      .power-button {
-        display: none;
+        background: #f7f7fb;
       }
 
       .screen {
         border-radius: 0;
       }
+
+      .silent-button,
+      .volume-up,
+      .volume-down,
+      .power-button {
+        display: none;
+      }
+
+      .dynamic-island {
+        top: 10px;
+      }
+    }
+
+    @media (max-height: 850px) and (min-width: 451px) {
+      .phone {
+        height: 760px;
+      }
     }
   </style>
 </head>
-
 
 <body>
 
   <div class="phone">
 
+    <!-- Zijknoppen -->
     <div class="silent-button"></div>
     <div class="volume-up"></div>
     <div class="volume-down"></div>
     <div class="power-button"></div>
-
 
     <div class="screen">
 
@@ -523,165 +542,154 @@
         <div class="camera"></div>
       </div>
 
-
       <!-- Statusbar -->
       <div class="statusbar">
+        <div id="currentTime">09:41</div>
 
-        <span id="currentTime">
-          12:00
-        </span>
-
-        <div class="status-icons">
-          <span>●●●</span>
-          <span>▰</span>
-          <span>▰</span>
-        </div>
-
-      </div>
-
-
-      <!-- Header -->
-      <header>
-
-        <h1>
-          Wat doe jij?
-        </h1>
-
-        <p>
-          Kies een situatie.
-        </p>
-
-      </header>
-
-
-      <!-- Content -->
-      <div class="content">
-
-        <!-- =====================================
-             HOOFDSCHERM
-        ====================================== -->
-
-        <section id="overviewScreen">
-
-          <div
-            id="situationsContainer"
-            class="situations"
-          ></div>
-
-        </section>
-
-
-        <!-- =====================================
-             SITUATIE
-        ====================================== -->
-
-        <section
-          id="detailScreen"
-          class="hidden"
-        >
-
-          <button
-            class="back-button"
-            onclick="showOverview()"
-          >
-            ← Alle situaties
-          </button>
-
-
-          <!-- Situatie blijft altijd zichtbaar -->
-
-          <div class="detail-card">
-
-            <h2 id="detailTitle"></h2>
-
-            <div
-              id="detailText"
-              class="detail-text"
-            ></div>
-
-
-            <!-- ACTIESCHERM -->
-
-            <div id="actionScreen">
-
-              <div class="question">
-                Wat doe jij?
-              </div>
-
-              <div
-                id="actionsContainer"
-                class="actions"
-              ></div>
-
-            </div>
-
-
-            <!-- RESULTAATSCHERM -->
-
-            <div
-              id="resultScreen"
-              class="result hidden"
-            >
-
-              <div class="result-label">
-                Jouw keuze
-              </div>
-
-              <div class="result-box">
-
-                <p id="selectedActionText"></p>
-
-              </div>
-
-
-              <button
-                class="another-action"
-                onclick="chooseAnotherAction()"
-              >
-                ← Andere actie kiezen
-              </button>
-
-            </div>
-
+        <div class="status-right">
+          <div class="signal">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
 
-        </section>
+          <div class="wifi">⌁</div>
 
+          <div class="battery">
+            <div class="battery-level"></div>
+          </div>
+        </div>
       </div>
 
+      <!-- App -->
+      <div class="app">
+
+        <header>
+          <h1>Wat doe jij?</h1>
+          <p>Kies een situatie.</p>
+        </header>
+
+        <main class="content">
+
+          <!-- OVERZICHT -->
+          <section id="overviewScreen">
+
+            <div
+              id="situationsContainer"
+              class="situations"
+            ></div>
+
+          </section>
+
+          <!-- DETAIL -->
+          <section
+            id="detailScreen"
+            class="hidden"
+          >
+
+            <button
+              class="back-button"
+              onclick="showOverview()"
+            >
+              ← Alle situaties
+            </button>
+
+            <div class="detail-card">
+
+              <h2 id="detailTitle"></h2>
+
+              <div
+                id="detailText"
+                class="detail-text"
+              ></div>
+
+              <!-- ACTIES -->
+              <div id="actionScreen">
+
+                <div class="question">
+                  Wat doe jij?
+                </div>
+
+                <div
+                  id="actionsContainer"
+                  class="actions"
+                ></div>
+
+              </div>
+
+              <!-- RESULTAAT -->
+              <div
+                id="resultScreen"
+                class="result hidden"
+              >
+
+                <div class="result-label">
+                  Jouw keuze
+                </div>
+
+                <div class="result-box">
+                  <p id="selectedActionText"></p>
+                </div>
+
+                <div class="result-buttons">
+
+                  <button
+                    class="another-action"
+                    onclick="chooseAnotherAction()"
+                  >
+                    ← Andere actie kiezen
+                  </button>
+
+                  <button
+                    class="next-action"
+                    onclick="showNextSituation()"
+                  >
+                    Volgende situatie →
+                  </button>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </section>
+
+        </main>
+
+      </div>
 
       <!-- Home indicator -->
-      <div class="home-area">
-        <div class="home-indicator"></div>
-      </div>
+      <div class="home-indicator"></div>
 
     </div>
-
   </div>
 
 
   <script>
-
-    /*
-    ==================================================
-    SITUATIES EN ACTIES
-    ==================================================
-    */
+    /* ==========================================
+       SITUATIES
+    ========================================== */
 
     const situaties = [
 
       {
         id: 1,
 
-        titel: "Een gênante foto in de groepsapp",
+        titel:
+          "Een gênante foto in de groepsapp",
 
         tekst:
           "In de groepsapp wordt een klasgenoot besproken die niet in de groep zit. Iemand stuurt een gênante foto van die persoon en iedereen begint grappige reacties te sturen.",
 
         acties: [
           "Je doet mee, want het is maar een grapje.",
+
           "Je zegt niets en kijkt alleen mee.",
+
           "Je stuurt iets om het gesprek een andere kant op te sturen.",
+
           "Je zegt dat je dit niet oké vindt."
         ]
       },
@@ -690,15 +698,19 @@
       {
         id: 2,
 
-        titel: "Iemand wordt buitengesloten",
+        titel:
+          "Iemand wordt buitengesloten",
 
         tekst:
           "Tijdens de pauze zie je dat een klasgenoot steeds alleen staat. Een groepje leerlingen praat met elkaar, maar negeert deze persoon bewust.",
 
         acties: [
           "Je loopt door en bemoeit je er niet mee.",
+
           "Je maakt een grapje over de situatie.",
+
           "Je loopt naar de klasgenoot toe en vraagt of alles goed gaat.",
+
           "Je vraagt de groep waarom ze deze persoon buitensluiten."
         ]
       },
@@ -707,15 +719,19 @@
       {
         id: 3,
 
-        titel: "Een vervelende opmerking",
+        titel:
+          "Een vervelende opmerking",
 
         tekst:
           "Tijdens een les maakt iemand een gemene opmerking over het uiterlijk van een andere leerling. Een paar leerlingen lachen erom.",
 
         acties: [
           "Je lacht mee zodat je niet buiten de groep valt.",
+
           "Je zegt niets.",
+
           "Je probeert het onderwerp te veranderen.",
+
           "Je zegt dat de opmerking niet aardig is."
         ]
       },
@@ -724,15 +740,19 @@
       {
         id: 4,
 
-        titel: "Een privébericht doorsturen",
+        titel:
+          "Een privébericht doorsturen",
 
         tekst:
           "Je krijgt een privébericht van een klasgenoot. Het bericht is duidelijk niet bedoeld voor andere mensen, maar iemand vraagt of je het wilt doorsturen naar de groepsapp.",
 
         acties: [
           "Je stuurt het meteen door.",
+
           "Je leest het maar doet verder niets.",
+
           "Je vraagt eerst toestemming aan de persoon die het stuurde.",
+
           "Je zegt dat je privéberichten niet wilt doorsturen."
         ]
       }
@@ -740,136 +760,138 @@
     ];
 
 
-    /*
-    ==================================================
-    ELEMENTEN
-    ==================================================
-    */
+    /* ==========================================
+       ELEMENTEN
+    ========================================== */
 
     const overviewScreen =
-      document.getElementById("overviewScreen");
+      document.getElementById(
+        "overviewScreen"
+      );
 
     const detailScreen =
-      document.getElementById("detailScreen");
+      document.getElementById(
+        "detailScreen"
+      );
 
     const situationsContainer =
-      document.getElementById("situationsContainer");
+      document.getElementById(
+        "situationsContainer"
+      );
 
     const detailTitle =
-      document.getElementById("detailTitle");
+      document.getElementById(
+        "detailTitle"
+      );
 
     const detailText =
-      document.getElementById("detailText");
+      document.getElementById(
+        "detailText"
+      );
 
     const actionsContainer =
-      document.getElementById("actionsContainer");
+      document.getElementById(
+        "actionsContainer"
+      );
 
     const actionScreen =
-      document.getElementById("actionScreen");
+      document.getElementById(
+        "actionScreen"
+      );
 
     const resultScreen =
-      document.getElementById("resultScreen");
+      document.getElementById(
+        "resultScreen"
+      );
 
     const selectedActionText =
-      document.getElementById("selectedActionText");
+      document.getElementById(
+        "selectedActionText"
+      );
 
 
-    /*
-    ==================================================
-    TIJD
-    ==================================================
-    */
+    /* ==========================================
+       HUIDIGE SITUATIE
+    ========================================== */
 
-    function updateTime() {
-
-      const now = new Date();
-
-      const hours =
-        String(now.getHours()).padStart(2, "0");
-
-      const minutes =
-        String(now.getMinutes()).padStart(2, "0");
-
-      document.getElementById("currentTime").textContent =
-        `${hours}:${minutes}`;
-    }
-
-    updateTime();
-
-    setInterval(updateTime, 30000);
+    let huidigeSituatieIndex = 0;
 
 
-    /*
-    ==================================================
-    HOOFDSCHERM
-    Alleen de titel wordt getoond.
-    ==================================================
-    */
+    /* ==========================================
+       SITUATIES WEERGEVEN
+    ========================================== */
 
     function renderSituations() {
 
       situationsContainer.innerHTML = "";
 
-      situaties.forEach((situatie, index) => {
+      situaties.forEach(
+        (situatie, index) => {
 
-        const card =
-          document.createElement("div");
+          const card =
+            document.createElement(
+              "div"
+            );
 
-        card.className =
-          "situation-card";
+          card.className =
+            "situation-card";
 
+          card.innerHTML = `
 
-        card.innerHTML = `
+            <div class="situation-number">
+              ${index + 1}
+            </div>
 
-          <div class="situation-number">
-            ${index + 1}
-          </div>
+            <h2>
+              ${situatie.titel}
+            </h2>
 
-          <h2>
-            ${situatie.titel}
-          </h2>
+            <div class="arrow">
+              ›
+            </div>
 
-          <div class="arrow">
-            ›
-          </div>
+          `;
 
-        `;
+          card.addEventListener(
+            "click",
+            () => {
+              showSituation(
+                situatie.id
+              );
+            }
+          );
 
+          situationsContainer.appendChild(
+            card
+          );
 
-        card.addEventListener(
-          "click",
-          () => showSituation(situatie.id)
-        );
-
-
-        situationsContainer.appendChild(card);
-
-      });
+        }
+      );
     }
 
 
-    /*
-    ==================================================
-    SITUATIE OPENEN
-    ==================================================
-    */
+    /* ==========================================
+       SITUATIE OPENEN
+    ========================================== */
 
     function showSituation(id) {
 
-      const situatie =
-        situaties.find(
+      const index =
+        situaties.findIndex(
           item => item.id === id
         );
 
-
-      if (!situatie) {
+      if (index === -1) {
         return;
       }
 
+      huidigeSituatieIndex = index;
 
-      /*
-       * Situatie tonen
-       */
+      const situatie =
+        situaties[index];
+
+
+      /* Titel en tekst */
 
       detailTitle.textContent =
         situatie.titel;
@@ -878,18 +900,20 @@
         situatie.tekst;
 
 
-      /*
-       * Acties opnieuw opbouwen
-       */
+      /* Oude knoppen verwijderen */
 
       actionsContainer.innerHTML = "";
 
+
+      /* Nieuwe actieknoppen maken */
 
       situatie.acties.forEach(
         (actie) => {
 
           const button =
-            document.createElement("button");
+            document.createElement(
+              "button"
+            );
 
           button.className =
             "action-button";
@@ -897,23 +921,24 @@
           button.textContent =
             actie;
 
-
           button.addEventListener(
             "click",
-            () => selectAction(actie)
+            () => {
+              selectAction(
+                actie
+              );
+            }
           );
 
-
-          actionsContainer.appendChild(button);
+          actionsContainer.appendChild(
+            button
+          );
 
         }
       );
 
 
-      /*
-       * Acties tonen
-       * Resultaat verbergen
-       */
+      /* Schermen instellen */
 
       actionScreen.classList.remove(
         "hidden"
@@ -922,11 +947,6 @@
       resultScreen.classList.add(
         "hidden"
       );
-
-
-      /*
-       * Naar detailpagina
-       */
 
       overviewScreen.classList.add(
         "hidden"
@@ -937,48 +957,31 @@
       );
 
 
-      document.querySelector(
-        ".content"
-      ).scrollTop = 0;
+      /* Scroll naar boven */
+
+      document
+        .querySelector(".content")
+        .scrollTop = 0;
     }
 
 
-    /*
-    ==================================================
-    ACTIE SELECTEREN
-
-    Na selectie verdwijnen de andere acties.
-    De situatie blijft bovenaan zichtbaar.
-    ==================================================
-    */
+    /* ==========================================
+       ACTIE KIEZEN
+    ========================================== */
 
     function selectAction(actie) {
 
       selectedActionText.textContent =
         actie;
 
-
-      /*
-       * Acties verbergen
-       */
-
       actionScreen.classList.add(
         "hidden"
       );
-
-
-      /*
-       * Gekozen actie tonen
-       */
 
       resultScreen.classList.remove(
         "hidden"
       );
 
-
-      /*
-       * Scroll naar de gekozen actie
-       */
 
       resultScreen.scrollIntoView({
         behavior: "smooth",
@@ -987,11 +990,9 @@
     }
 
 
-    /*
-    ==================================================
-    ANDERE ACTIE KIEZEN
-    ==================================================
-    */
+    /* ==========================================
+       ANDERE ACTIE KIEZEN
+    ========================================== */
 
     function chooseAnotherAction() {
 
@@ -1005,11 +1006,18 @@
     }
 
 
-    /*
-    ==================================================
-    TERUG NAAR OVERZICHT
-    ==================================================
-    */
+    /* ==========================================
+       VOLGENDE SITUATIE
+    ========================================== */
+
+    function showNextSituation() {
+        showOverview();
+    }
+
+
+    /* ==========================================
+       TERUG NAAR OVERZICHT
+    ========================================== */
 
     function showOverview() {
 
@@ -1022,19 +1030,56 @@
       );
 
 
-      document.querySelector(
-        ".content"
-      ).scrollTop = 0;
+      document
+        .querySelector(".content")
+        .scrollTop = 0;
     }
 
 
-    /*
-    ==================================================
-    START
-    ==================================================
-    */
+    /* ==========================================
+       TIJD IN STATUSBAR
+    ========================================== */
+
+    function updateTime() {
+
+      const now =
+        new Date();
+
+      const hours =
+        String(
+          now.getHours()
+        ).padStart(
+          2,
+          "0"
+        );
+
+      const minutes =
+        String(
+          now.getMinutes()
+        ).padStart(
+          2,
+          "0"
+        );
+
+      document.getElementById(
+        "currentTime"
+      ).textContent =
+        `${hours}:${minutes}`;
+    }
+
+
+    /* ==========================================
+       START
+    ========================================== */
 
     renderSituations();
+
+    updateTime();
+
+    setInterval(
+      updateTime,
+      30000
+    );
 
   </script>
 
