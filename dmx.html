@@ -1,0 +1,2382 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>DMX Light Control</title>
+
+  <style>
+    :root {
+      --bg: #09070d;
+      --panel: #121019;
+      --panel-2: #18131f;
+      --border: #2b2435;
+      --text: #f5f1fa;
+      --muted: #9d95a8;
+      --accent: #9d4edd;
+      --accent-2: #c77dff;
+      --danger: #ff5577;
+      --shadow: 0 12px 35px rgba(0, 0, 0, .35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    /* =========================
+       APP
+    ========================= */
+
+    .app {
+      width: 100%;
+      min-height: 100vh;
+      padding: 12px;
+    }
+
+    .topbar {
+      width: 100%;
+      min-height: 64px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+
+      padding: 10px 14px;
+
+      background: rgba(18, 16, 25, .94);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle at 50% 45%,
+          #ffffff 0%,
+          #e6bfff 18%,
+          #9d4edd 45%,
+          #4c176f 72%,
+          #190b27 100%
+        );
+
+      box-shadow:
+        0 0 12px rgba(199, 125, 255, .7),
+        0 0 30px rgba(157, 78, 221, .35);
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .brand-subtitle {
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    /* =========================
+       BUTTONS
+    ========================= */
+
+    .btn {
+      border: 1px solid var(--border);
+      background: #18141e;
+
+      padding: 9px 13px;
+      border-radius: 11px;
+
+      cursor: pointer;
+      transition:
+        transform .15s ease,
+        background .15s ease,
+        border-color .15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      background: #211a29;
+      border-color: #473755;
+    }
+
+    .btn-primary {
+      background: linear-gradient(
+        135deg,
+        #7b2cbf,
+        #9d4edd
+      );
+
+      border-color: #b76be8;
+
+      box-shadow:
+        0 5px 18px rgba(157, 78, 221, .28);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(
+        135deg,
+        #8a38ce,
+        #ad5ce8
+      );
+    }
+
+    .btn-danger {
+      color: #ff9ab0;
+      border-color: rgba(255, 85, 119, .25);
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 85, 119, .08);
+      border-color: rgba(255, 85, 119, .5);
+    }
+
+    .icon-btn {
+      width: 39px;
+      height: 39px;
+      padding: 0;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 11px;
+    }
+
+    /* =========================
+       STATUS
+    ========================= */
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+
+      padding: 7px 10px;
+
+      color: var(--muted);
+      font-size: 11px;
+
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #0f0c14;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #777;
+    }
+
+    .status.connected .status-dot {
+      background: #52e07d;
+      box-shadow: 0 0 10px rgba(82, 224, 125, .7);
+    }
+
+    /* =========================
+       MASTER
+    ========================= */
+
+    .master-panel {
+      margin-top: 12px;
+
+      padding: 13px 15px;
+
+      display: flex;
+      align-items: center;
+      gap: 18px;
+
+      background: rgba(18, 16, 25, .94);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+
+      box-shadow: var(--shadow);
+    }
+
+    .master-info {
+      width: 145px;
+      flex: 0 0 auto;
+    }
+
+    .master-title {
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .master-subtitle {
+      margin-top: 3px;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .master-control {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .master-value {
+      width: 48px;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent-2);
+    }
+
+    /* =========================
+       SLIDERS
+    ========================= */
+
+    input[type="range"] {
+      width: 100%;
+      height: 5px;
+
+      appearance: none;
+      -webkit-appearance: none;
+
+      border-radius: 20px;
+      outline: none;
+
+      background:
+        linear-gradient(
+          90deg,
+          #7b2cbf,
+          #c77dff
+        );
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+
+      width: 19px;
+      height: 19px;
+
+      border-radius: 50%;
+
+      background: #fff;
+      border: 3px solid #a957df;
+
+      box-shadow:
+        0 0 10px rgba(199, 125, 255, .5);
+
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 19px;
+      height: 19px;
+
+      border-radius: 50%;
+
+      background: #fff;
+      border: 3px solid #a957df;
+
+      box-shadow:
+        0 0 10px rgba(199, 125, 255, .5);
+
+      cursor: pointer;
+    }
+
+    /* =========================
+       STAGE
+    ========================= */
+
+    .stage-wrap {
+      margin-top: 12px;
+    }
+
+    .stage-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      margin-bottom: 8px;
+
+      padding: 0 3px;
+    }
+
+    .stage-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #ddd6e7;
+    }
+
+    .stage-hint {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .stage {
+      position: relative;
+
+      width: 100%;
+      min-height: 650px;
+
+      overflow: hidden;
+
+      border-radius: 18px;
+      border: 1px solid var(--border);
+
+      background:
+        radial-gradient(
+          circle at 50% 20%,
+          rgba(157, 78, 221, .09),
+          transparent 34%
+        ),
+        linear-gradient(
+          rgba(255, 255, 255, .018) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255, 255, 255, .018) 1px,
+          transparent 1px
+        ),
+        #0d0a12;
+
+      background-size:
+        auto,
+        40px 40px,
+        40px 40px,
+        auto;
+
+      box-shadow: var(--shadow);
+    }
+
+    /* =========================
+       FIXTURE CARDS
+    ========================= */
+
+    .fixture {
+      position: absolute;
+
+      width: 150px;
+
+      padding: 10px;
+
+      border-radius: 17px;
+
+      background: rgba(20, 17, 27, .94);
+      border: 1px solid #302839;
+
+      box-shadow:
+        0 8px 25px rgba(0, 0, 0, .32);
+
+      user-select: none;
+
+      cursor: grab;
+
+      transition:
+        border-color .15s ease,
+        box-shadow .15s ease;
+    }
+
+    .fixture:active {
+      cursor: grabbing;
+    }
+
+    .fixture:hover {
+      border-color: #493958;
+      box-shadow:
+        0 10px 28px rgba(0, 0, 0, .4);
+    }
+
+    .fixture-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      margin-bottom: 8px;
+    }
+
+    .fixture-name {
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .fixture-address {
+      font-size: 9px;
+      color: var(--muted);
+      font-family: monospace;
+    }
+
+    /* =========================
+       ROUND LAMP
+    ========================= */
+
+    .lamp-area {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      padding: 4px 0 10px;
+    }
+
+    .lamp {
+      position: relative;
+
+      width: 76px;
+      height: 76px;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle at 50% 45%,
+          #ffffff 0%,
+          var(--lamp-color, #c77dff) 17%,
+          var(--lamp-color, #c77dff) 32%,
+          color-mix(
+            in srgb,
+            var(--lamp-color, #c77dff) 65%,
+            #000 35%
+          ) 52%,
+          #110b17 76%,
+          #07050a 100%
+        );
+
+      border: 3px solid rgba(255, 255, 255, .12);
+
+      box-shadow:
+        0 0 8px var(--lamp-color, #c77dff),
+        0 0 20px color-mix(
+          in srgb,
+          var(--lamp-color, #c77dff) 60%,
+          transparent
+        ),
+        inset 0 0 14px rgba(255, 255, 255, .16);
+
+      transition:
+        transform .15s ease,
+        box-shadow .15s ease,
+        filter .15s ease;
+    }
+
+    .lamp::before {
+      content: "";
+
+      position: absolute;
+      inset: 8px;
+
+      border-radius: 50%;
+
+      border: 1px solid rgba(255, 255, 255, .22);
+
+      opacity: .75;
+    }
+
+    .lamp::after {
+      content: "";
+
+      position: absolute;
+
+      width: 17px;
+      height: 10px;
+
+      left: 16px;
+      top: 13px;
+
+      border-radius: 50%;
+
+      background: rgba(255, 255, 255, .5);
+
+      filter: blur(3px);
+
+      transform: rotate(-25deg);
+    }
+
+    .fixture:hover .lamp {
+      transform: scale(1.04);
+    }
+
+    /* =========================
+       COLOR BUTTONS
+    ========================= */
+
+    .color-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+
+      margin-bottom: 9px;
+    }
+
+    .color-btn {
+      position: relative;
+
+      width: 20px;
+      height: 20px;
+
+      padding: 0;
+
+      border-radius: 50%;
+
+      border: 2px solid rgba(255, 255, 255, .15);
+
+      cursor: pointer;
+
+      box-shadow:
+        0 0 7px rgba(255, 255, 255, .05);
+
+      transition:
+        transform .12s ease,
+        border-color .12s ease,
+        box-shadow .12s ease;
+    }
+
+    .color-btn:hover {
+      transform: scale(1.18);
+      border-color: rgba(255, 255, 255, .65);
+    }
+
+    .color-btn.active {
+      border-color: #fff;
+
+      box-shadow:
+        0 0 8px currentColor,
+        0 0 15px currentColor;
+    }
+
+    /* =========================
+       FIXTURE DIMMER
+    ========================= */
+
+    .fixture-dimmer {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .fixture-dimmer-icon {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .fixture-dimmer-value {
+      width: 29px;
+      text-align: right;
+
+      font-size: 9px;
+      color: var(--muted);
+    }
+
+    /* =========================
+       GENERIC DIMMER
+    ========================= */
+
+    .dimmer-icon {
+      width: 58px;
+      height: 58px;
+
+      margin: 3px auto 9px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle at 50% 45%,
+          #fff 0%,
+          #e5d9ec 8%,
+          #9d4edd 27%,
+          #351444 58%,
+          #0a070d 100%
+        );
+
+      box-shadow:
+        0 0 14px rgba(157, 78, 221, .4),
+        inset 0 0 10px rgba(255, 255, 255, .12);
+
+      font-size: 20px;
+    }
+
+    .dimmer-label {
+      text-align: center;
+
+      margin-bottom: 8px;
+
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    /* =========================
+       MODAL
+    ========================= */
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+
+      display: none;
+      align-items: center;
+      justify-content: center;
+
+      padding: 16px;
+
+      background: rgba(0, 0, 0, .68);
+
+      backdrop-filter: blur(7px);
+
+      z-index: 1000;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(460px, 100%);
+
+      background: #131019;
+
+      border: 1px solid #342b3e;
+      border-radius: 20px;
+
+      box-shadow:
+        0 25px 70px rgba(0, 0, 0, .6);
+
+      overflow: hidden;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 17px 18px;
+
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .modal-body {
+      padding: 18px;
+    }
+
+    .field {
+      margin-bottom: 15px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .field label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      font-size: 11px;
+      font-weight: 700;
+      color: #dcd5e4;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+
+      padding: 10px 11px;
+
+      color: var(--text);
+      background: #0d0a11;
+
+      border: 1px solid var(--border);
+      border-radius: 10px;
+
+      outline: none;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: #74449a;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+
+      padding: 14px 18px;
+
+      border-top: 1px solid var(--border);
+    }
+
+    .modal-footer-right {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 700px) {
+      .app {
+        padding: 7px;
+      }
+
+      .topbar {
+        border-radius: 14px;
+        padding: 9px 10px;
+      }
+
+      .brand-subtitle {
+        display: none;
+      }
+
+      .status {
+        display: none;
+      }
+
+      .master-panel {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 9px;
+      }
+
+      .master-info {
+        width: 100%;
+      }
+
+      .master-control {
+        width: 100%;
+      }
+
+      .stage {
+        min-height: 720px;
+        border-radius: 14px;
+      }
+
+      .fixture {
+        width: 140px;
+      }
+
+      .lamp {
+        width: 70px;
+        height: 70px;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .brand-title {
+        font-size: 14px;
+      }
+
+      .top-actions {
+        gap: 5px;
+      }
+
+      .btn {
+        padding: 8px 10px;
+        font-size: 11px;
+      }
+
+      .fixture {
+        width: 132px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- =========================
+       TOPBAR
+  ========================== -->
+
+  <header class="topbar">
+
+    <div class="brand">
+
+      <div class="brand-icon"></div>
+
+      <div class="brand-text">
+        <div class="brand-title">
+          DMX Light Control
+        </div>
+
+        <div class="brand-subtitle">
+          Browser lighting controller
+        </div>
+      </div>
+
+    </div>
+
+    <div class="top-actions">
+
+      <div class="status" id="connectionStatus">
+        <span class="status-dot"></span>
+        <span id="statusText">Niet verbonden</span>
+      </div>
+
+      <button
+        class="btn btn-primary"
+        id="connectBtn"
+      >
+        Verbinden
+      </button>
+
+      <button
+        class="btn icon-btn"
+        id="settingsBtn"
+        title="Instellingen"
+      >
+        ⚙
+      </button>
+
+    </div>
+
+  </header>
+
+
+  <!-- =========================
+       MASTER DIMMER
+  ========================== -->
+
+  <section class="master-panel">
+
+    <div class="master-info">
+      <div class="master-title">
+        Master dimmer
+      </div>
+
+      <div class="master-subtitle">
+        Algemene helderheid
+      </div>
+    </div>
+
+    <div class="master-control">
+
+      <input
+        id="masterSlider"
+        type="range"
+        min="0"
+        max="100"
+        value="100"
+      >
+
+      <div
+        class="master-value"
+        id="masterValue"
+      >
+        100%
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       STAGE
+  ========================== -->
+
+  <main class="stage-wrap">
+
+    <div class="stage-header">
+
+      <div class="stage-title">
+        Lichtplan
+      </div>
+
+      <div class="stage-hint">
+        Sleep lampen om ze te verplaatsen
+      </div>
+
+    </div>
+
+    <div
+      class="stage"
+      id="stage"
+    ></div>
+
+  </main>
+
+</div>
+
+
+<!-- =========================
+     SETTINGS MODAL
+========================== -->
+
+<div
+  class="modal-backdrop"
+  id="settingsModal"
+>
+
+  <div class="modal">
+
+    <div class="modal-head">
+
+      <div class="modal-title">
+        Instellingen
+      </div>
+
+      <button
+        class="btn icon-btn"
+        id="closeSettingsBtn"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="modal-body">
+
+      <div class="field">
+
+        <label for="parCount">
+          Aantal Compact Par 7 Tri
+        </label>
+
+        <input
+          id="parCount"
+          type="number"
+          min="0"
+          max="30"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="dimmerCount">
+          Aantal dimmers
+        </label>
+
+        <input
+          id="dimmerCount"
+          type="number"
+          min="0"
+          max="32"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="scheme">
+          Kleurenschema
+        </label>
+
+        <select id="scheme">
+
+          <option value="purple">
+            Purple
+          </option>
+
+          <option value="party">
+            Party
+          </option>
+
+          <option value="sunset">
+            Sunset
+          </option>
+
+          <option value="ocean">
+            Ocean
+          </option>
+
+          <option value="forest">
+            Forest
+          </option>
+
+          <option value="pastel">
+            Pastel
+          </option>
+
+          <option value="mono">
+            Monochrome
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+
+    <div class="modal-footer">
+
+      <button
+        class="btn btn-danger"
+        id="resetBtn"
+      >
+        Reset app
+      </button>
+
+      <div class="modal-footer-right">
+
+        <button
+          class="btn"
+          id="cancelSettingsBtn"
+        >
+          Annuleren
+        </button>
+
+        <button
+          class="btn btn-primary"
+          id="saveSettingsBtn"
+        >
+          Opslaan
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script src="dmx.js"></script>
+
+<script>
+
+  /* =========================================================
+     CONFIGURATION
+  ========================================================= */
+
+  const STORAGE_KEY = "simple-dmx-control-v4";
+
+  const COLOR_SCHEMES = {
+
+    party: [
+      "#ff355d",
+      "#ff9f1c",
+      "#fff133",
+      "#32e875",
+      "#6c63ff"
+    ],
+
+    sunset: [
+      "#ff4d6d",
+      "#ff7b00",
+      "#ffb703",
+      "#fb5607",
+      "#8338ec"
+    ],
+
+    ocean: [
+      "#00b4d8",
+      "#0077b6",
+      "#48cae4",
+      "#4361ee",
+      "#4cc9f0"
+    ],
+
+    forest: [
+      "#2d6a4f",
+      "#40916c",
+      "#52b788",
+      "#95d5b2",
+      "#b7e4c7"
+    ],
+
+    pastel: [
+      "#ffadad",
+      "#ffd6a5",
+      "#fdffb6",
+      "#caffbf",
+      "#bdb2ff"
+    ],
+
+    purple: [
+      "#3c096c",
+      "#5a189a",
+      "#7b2cbf",
+      "#9d4edd",
+      "#c77dff"
+    ],
+
+    mono: [
+      "#ffffff",
+      "#c7c7c7",
+      "#929292",
+      "#5e5e5e",
+      "#303030"
+    ]
+
+  };
+
+
+  /* =========================================================
+     DEFAULT STATE
+  ========================================================= */
+
+  let state = {
+
+    parCount: 4,
+
+    dimmerCount: 4,
+
+    scheme: "purple",
+
+    master: 100,
+
+    pars: [],
+
+    dimmers: []
+
+  };
+
+
+  /* =========================================================
+     IMPORTANT:
+     dmx.js gebruikt deze functie om de actuele toestand
+     van de interface te kunnen lezen.
+  ========================================================= */
+
+  window.getDMXState = () => state;
+
+
+  /* =========================================================
+     ELEMENTS
+  ========================================================= */
+
+  const stage =
+    document.getElementById("stage");
+
+  const masterSlider =
+    document.getElementById("masterSlider");
+
+  const masterValue =
+    document.getElementById("masterValue");
+
+  const settingsModal =
+    document.getElementById("settingsModal");
+
+  const settingsBtn =
+    document.getElementById("settingsBtn");
+
+  const closeSettingsBtn =
+    document.getElementById("closeSettingsBtn");
+
+  const cancelSettingsBtn =
+    document.getElementById("cancelSettingsBtn");
+
+  const saveSettingsBtn =
+    document.getElementById("saveSettingsBtn");
+
+  const resetBtn =
+    document.getElementById("resetBtn");
+
+  const parCountInput =
+    document.getElementById("parCount");
+
+  const dimmerCountInput =
+    document.getElementById("dimmerCount");
+
+  const schemeInput =
+    document.getElementById("scheme");
+
+  const connectBtn =
+    document.getElementById("connectBtn");
+
+  const connectionStatus =
+    document.getElementById("connectionStatus");
+
+  const statusText =
+    document.getElementById("statusText");
+
+
+  /* =========================================================
+     LOAD
+  ========================================================= */
+
+  function loadState() {
+
+    try {
+
+      const saved =
+        localStorage.getItem(STORAGE_KEY);
+
+      if (saved) {
+
+        const parsed =
+          JSON.parse(saved);
+
+        state = {
+          ...state,
+          ...parsed
+        };
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Kon instellingen niet laden:",
+        error
+      );
+
+    }
+
+    ensureFixtures();
+
+  }
+
+
+  /* =========================================================
+     SAVE
+  ========================================================= */
+
+  function saveState() {
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(state)
+    );
+
+  }
+
+
+  /* =========================================================
+     FIXTURES
+  ========================================================= */
+
+  function ensureFixtures() {
+
+    const colors =
+      COLOR_SCHEMES[state.scheme] ||
+      COLOR_SCHEMES.purple;
+
+
+    /*
+      PARs
+    */
+
+    for (
+      let i = 0;
+      i < state.parCount;
+      i++
+    ) {
+
+      if (!state.pars[i]) {
+
+        state.pars[i] = {
+
+          color: colors[0],
+
+          dimmer: 100,
+
+          x: 20 + (i % 6) * 170,
+
+          y: 25 +
+             Math.floor(i / 6) * 210
+
+        };
+
+      }
+
+    }
+
+    state.pars =
+      state.pars.slice(
+        0,
+        state.parCount
+      );
+
+
+    /*
+      Dimmers
+    */
+
+    for (
+      let i = 0;
+      i < state.dimmerCount;
+      i++
+    ) {
+
+      if (!state.dimmers[i]) {
+
+        state.dimmers[i] = {
+
+          dimmer: 100,
+
+          x: 20 + (i % 6) * 180,
+
+          y: 330 +
+             Math.floor(i / 6) * 170
+
+        };
+
+      }
+
+    }
+
+    state.dimmers =
+      state.dimmers.slice(
+        0,
+        state.dimmerCount
+      );
+
+  }
+
+
+  /* =========================================================
+     HELPERS
+  ========================================================= */
+
+  function clamp(
+    value,
+    min,
+    max
+  ) {
+
+    return Math.max(
+      min,
+      Math.min(max, value)
+    );
+
+  }
+
+
+  function hexToRgb(hex) {
+
+    const clean =
+      hex.replace("#", "");
+
+    return {
+
+      r: parseInt(
+        clean.substring(0, 2),
+        16
+      ),
+
+      g: parseInt(
+        clean.substring(2, 4),
+        16
+      ),
+
+      b: parseInt(
+        clean.substring(4, 6),
+        16
+      )
+
+    };
+
+  }
+
+
+  function setMaster(value) {
+
+    state.master =
+      Number(value);
+
+    masterSlider.value =
+      state.master;
+
+    masterValue.textContent =
+      `${state.master}%`;
+
+    saveState();
+
+    if (
+      window.dmx &&
+      typeof window.dmx.sendAll === "function"
+    ) {
+
+      window.dmx.sendAll();
+
+    }
+
+  }
+
+
+  /* =========================================================
+     RENDER
+  ========================================================= */
+
+  function render() {
+
+    ensureFixtures();
+
+    stage.innerHTML = "";
+
+    masterSlider.value =
+      state.master;
+
+    masterValue.textContent =
+      `${state.master}%`;
+
+
+    /*
+      PARs
+    */
+
+    state.pars.forEach(
+      (par, index) => {
+
+        stage.appendChild(
+          createPar(index, par)
+        );
+
+      }
+    );
+
+
+    /*
+      Generic dimmers
+    */
+
+    state.dimmers.forEach(
+      (dimmer, index) => {
+
+        stage.appendChild(
+          createDimmer(index, dimmer)
+        );
+
+      }
+    );
+
+  }
+
+
+  /* =========================================================
+     CREATE PAR
+  ========================================================= */
+
+  function createPar(
+    index,
+    par
+  ) {
+
+    const fixture =
+      document.createElement("div");
+
+    fixture.className =
+      "fixture";
+
+    fixture.dataset.type =
+      "par";
+
+    fixture.dataset.index =
+      index;
+
+
+    fixture.style.left =
+      `${par.x}px`;
+
+    fixture.style.top =
+      `${par.y}px`;
+
+
+    const address =
+      index * 4 + 1;
+
+
+    const colors =
+      COLOR_SCHEMES[state.scheme] ||
+      COLOR_SCHEMES.purple;
+
+
+    const head =
+      document.createElement("div");
+
+    head.className =
+      "fixture-head";
+
+    head.innerHTML = `
+      <div class="fixture-name">
+        PAR ${index + 1}
+      </div>
+
+      <div class="fixture-address">
+        DMX ${address}
+      </div>
+    `;
+
+
+    /* Lamp */
+
+    const lampArea =
+      document.createElement("div");
+
+    lampArea.className =
+      "lamp-area";
+
+
+    const lamp =
+      document.createElement("div");
+
+    lamp.className =
+      "lamp";
+
+    lamp.style.setProperty(
+      "--lamp-color",
+      par.color
+    );
+
+
+    /*
+      Dimmer effect on lamp
+    */
+
+    const brightness =
+      Math.max(
+        .08,
+        par.dimmer / 100
+      );
+
+    lamp.style.filter =
+      `brightness(${brightness})`;
+
+
+    lampArea.appendChild(lamp);
+
+
+    /* Color buttons */
+
+    const colorButtons =
+      document.createElement("div");
+
+    colorButtons.className =
+      "color-buttons";
+
+
+    colors.forEach(
+      (color) => {
+
+        const button =
+          document.createElement("button");
+
+        button.className =
+          "color-btn";
+
+        button.style.background =
+          color;
+
+        button.style.color =
+          color;
+
+        button.title =
+          color;
+
+
+        if (
+          par.color.toLowerCase() ===
+          color.toLowerCase()
+        ) {
+
+          button.classList.add(
+            "active"
+          );
+
+        }
+
+
+        button.addEventListener(
+          "click",
+          (event) => {
+
+            event.stopPropagation();
+
+            par.color =
+              color;
+
+            saveState();
+
+            render();
+
+            sendPar(index);
+
+          }
+        );
+
+
+        colorButtons.appendChild(
+          button
+        );
+
+      }
+    );
+
+
+    /* Dimmer */
+
+    const dimmer =
+      document.createElement("div");
+
+    dimmer.className =
+      "fixture-dimmer";
+
+
+    const dimmerIcon =
+      document.createElement("span");
+
+    dimmerIcon.className =
+      "fixture-dimmer-icon";
+
+    dimmerIcon.textContent =
+      "☀";
+
+
+    const slider =
+      document.createElement("input");
+
+    slider.type =
+      "range";
+
+    slider.min =
+      "0";
+
+    slider.max =
+      "100";
+
+    slider.value =
+      par.dimmer;
+
+
+    const value =
+      document.createElement("span");
+
+    value.className =
+      "fixture-dimmer-value";
+
+    value.textContent =
+      `${par.dimmer}%`;
+
+
+    slider.addEventListener(
+      "input",
+      (event) => {
+
+        event.stopPropagation();
+
+        par.dimmer =
+          Number(slider.value);
+
+        value.textContent =
+          `${par.dimmer}%`;
+
+        const brightness =
+          Math.max(
+            .08,
+            par.dimmer / 100
+          );
+
+        lamp.style.filter =
+          `brightness(${brightness})`;
+
+        saveState();
+
+        sendPar(index);
+
+      }
+    );
+
+
+    dimmer.appendChild(
+      dimmerIcon
+    );
+
+    dimmer.appendChild(
+      slider
+    );
+
+    dimmer.appendChild(
+      value
+    );
+
+
+    fixture.appendChild(head);
+
+    fixture.appendChild(lampArea);
+
+    fixture.appendChild(
+      colorButtons
+    );
+
+    fixture.appendChild(dimmer);
+
+
+    makeDraggable(
+      fixture,
+      par
+    );
+
+
+    return fixture;
+
+  }
+
+
+  /* =========================================================
+     CREATE GENERIC DIMMER
+  ========================================================= */
+
+  function createDimmer(
+    index,
+    dimmer
+  ) {
+
+    const fixture =
+      document.createElement("div");
+
+    fixture.className =
+      "fixture";
+
+    fixture.dataset.type =
+      "dimmer";
+
+    fixture.dataset.index =
+      index;
+
+
+    fixture.style.left =
+      `${dimmer.x}px`;
+
+    fixture.style.top =
+      `${dimmer.y}px`;
+
+
+    const address =
+      state.parCount * 4 +
+      index +
+      1;
+
+
+    const head =
+      document.createElement("div");
+
+    head.className =
+      "fixture-head";
+
+    head.innerHTML = `
+      <div class="fixture-name">
+        Dimmer ${index + 1}
+      </div>
+
+      <div class="fixture-address">
+        DMX ${address}
+      </div>
+    `;
+
+
+    const icon =
+      document.createElement("div");
+
+    icon.className =
+      "dimmer-icon";
+
+    icon.textContent =
+      "☀";
+
+
+    icon.style.filter =
+      `brightness(${Math.max(
+        .2,
+        dimmer.dimmer / 100
+      )})`;
+
+
+    const label =
+      document.createElement("div");
+
+    label.className =
+      "dimmer-label";
+
+    label.textContent =
+      `${dimmer.dimmer}%`;
+
+
+    const slider =
+      document.createElement("input");
+
+    slider.type =
+      "range";
+
+    slider.min =
+      "0";
+
+    slider.max =
+      "100";
+
+    slider.value =
+      dimmer.dimmer;
+
+
+    slider.addEventListener(
+      "input",
+      (event) => {
+
+        event.stopPropagation();
+
+        dimmer.dimmer =
+          Number(slider.value);
+
+        label.textContent =
+          `${dimmer.dimmer}%`;
+
+        icon.style.filter =
+          `brightness(${Math.max(
+            .2,
+            dimmer.dimmer / 100
+          )})`;
+
+        saveState();
+
+        sendDimmer(index);
+
+      }
+    );
+
+
+    fixture.appendChild(head);
+
+    fixture.appendChild(icon);
+
+    fixture.appendChild(label);
+
+    fixture.appendChild(slider);
+
+
+    makeDraggable(
+      fixture,
+      dimmer
+    );
+
+
+    return fixture;
+
+  }
+
+
+  /* =========================================================
+     DRAG & DROP
+  ========================================================= */
+
+  function makeDraggable(
+    element,
+    fixtureState
+  ) {
+
+    let dragging = false;
+
+    let offsetX = 0;
+
+    let offsetY = 0;
+
+
+    element.addEventListener(
+      "pointerdown",
+      (event) => {
+
+        /*
+          Don't start dragging when
+          operating a button or slider.
+        */
+
+        if (
+          event.target.closest(
+            "button, input, select"
+          )
+        ) {
+
+          return;
+
+        }
+
+
+        dragging = true;
+
+        element.setPointerCapture(
+          event.pointerId
+        );
+
+
+        const rect =
+          element.getBoundingClientRect();
+
+        offsetX =
+          event.clientX -
+          rect.left;
+
+        offsetY =
+          event.clientY -
+          rect.top;
+
+      }
+    );
+
+
+    element.addEventListener(
+      "pointermove",
+      (event) => {
+
+        if (!dragging) {
+          return;
+        }
+
+
+        const stageRect =
+          stage.getBoundingClientRect();
+
+
+        let x =
+          event.clientX -
+          stageRect.left -
+          offsetX;
+
+        let y =
+          event.clientY -
+          stageRect.top -
+          offsetY;
+
+
+        x = clamp(
+          x,
+          0,
+          stageRect.width -
+          element.offsetWidth
+        );
+
+
+        y = clamp(
+          y,
+          0,
+          stageRect.height -
+          element.offsetHeight
+        );
+
+
+        element.style.left =
+          `${x}px`;
+
+        element.style.top =
+          `${y}px`;
+
+
+        fixtureState.x =
+          Math.round(x);
+
+        fixtureState.y =
+          Math.round(y);
+
+      }
+    );
+
+
+    element.addEventListener(
+      "pointerup",
+      () => {
+
+        if (!dragging) {
+          return;
+        }
+
+        dragging = false;
+
+        saveState();
+
+      }
+    );
+
+
+    element.addEventListener(
+      "pointercancel",
+      () => {
+
+        dragging = false;
+
+        saveState();
+
+      }
+    );
+
+  }
+
+
+  /* =========================================================
+     DMX
+  ========================================================= */
+
+  function sendPar(index) {
+
+    if (
+      window.dmx &&
+      typeof window.dmx.sendPar === "function"
+    ) {
+
+      window.dmx.sendPar(index);
+
+    }
+
+  }
+
+
+  function sendDimmer(index) {
+
+    if (
+      window.dmx &&
+      typeof window.dmx.sendDimmer === "function"
+    ) {
+
+      window.dmx.sendDimmer(index);
+
+    }
+
+  }
+
+
+  /* =========================================================
+     MASTER
+  ========================================================= */
+
+  masterSlider.addEventListener(
+    "input",
+    () => {
+
+      setMaster(
+        masterSlider.value
+      );
+
+    }
+  );
+
+
+  /* =========================================================
+     SETTINGS OPEN
+  ========================================================= */
+
+  function openSettings() {
+
+    parCountInput.value =
+      state.parCount;
+
+    dimmerCountInput.value =
+      state.dimmerCount;
+
+    schemeInput.value =
+      state.scheme;
+
+    settingsModal.classList.add(
+      "open"
+    );
+
+  }
+
+
+  function closeSettings() {
+
+    settingsModal.classList.remove(
+      "open"
+    );
+
+  }
+
+
+  settingsBtn.addEventListener(
+    "click",
+    openSettings
+  );
+
+
+  closeSettingsBtn.addEventListener(
+    "click",
+    closeSettings
+  );
+
+
+  cancelSettingsBtn.addEventListener(
+    "click",
+    closeSettings
+  );
+
+
+  settingsModal.addEventListener(
+    "click",
+    (event) => {
+
+      if (
+        event.target ===
+        settingsModal
+      ) {
+
+        closeSettings();
+
+      }
+
+    }
+  );
+
+
+  /* =========================================================
+     SAVE SETTINGS
+  ========================================================= */
+
+  saveSettingsBtn.addEventListener(
+    "click",
+    () => {
+
+      const oldScheme =
+        state.scheme;
+
+      const newParCount =
+        clamp(
+          Number(parCountInput.value) || 0,
+          0,
+          30
+        );
+
+      const newDimmerCount =
+        clamp(
+          Number(dimmerCountInput.value) || 0,
+          0,
+          32
+        );
+
+      const newScheme =
+        schemeInput.value;
+
+
+      state.parCount =
+        newParCount;
+
+      state.dimmerCount =
+        newDimmerCount;
+
+      state.scheme =
+        newScheme;
+
+
+      /*
+        Wanneer het kleurenschema verandert,
+        zorgen we ervoor dat iedere PAR
+        een kleur uit het nieuwe schema heeft.
+      */
+
+      const newColors =
+        COLOR_SCHEMES[newScheme] ||
+        COLOR_SCHEMES.purple;
+
+
+      state.pars.forEach(
+        (par) => {
+
+          const exists =
+            newColors.some(
+              color =>
+                color.toLowerCase() ===
+                String(par.color).toLowerCase()
+            );
+
+          if (!exists) {
+
+            par.color =
+              newColors[0];
+
+          }
+
+        }
+      );
+
+
+      ensureFixtures();
+
+      saveState();
+
+      render();
+
+      closeSettings();
+
+
+      if (
+        oldScheme !== newScheme &&
+        window.dmx &&
+        typeof window.dmx.sendAll === "function"
+      ) {
+
+        window.dmx.sendAll();
+
+      }
+
+    }
+  );
+
+
+  /* =========================================================
+     RESET
+  ========================================================= */
+
+  resetBtn.addEventListener(
+    "click",
+    () => {
+
+      const confirmed =
+        confirm(
+          "Weet je zeker dat je de volledige app wilt resetten?\n\nAlle lampen, posities en instellingen worden gewist."
+        );
+
+
+      if (!confirmed) {
+        return;
+      }
+
+
+      localStorage.removeItem(
+        STORAGE_KEY
+      );
+
+
+      location.reload();
+
+    }
+  );
+
+
+  /* =========================================================
+     CONNECT
+  ========================================================= */
+
+  connectBtn.addEventListener(
+    "click",
+    async () => {
+
+      if (
+        !window.dmx ||
+        typeof window.dmx.connect !==
+        "function"
+      ) {
+
+        alert(
+          "DMX-controller is niet geladen."
+        );
+
+        return;
+
+      }
+
+
+      try {
+
+        await window.dmx.connect();
+
+        connectionStatus.classList.add(
+          "connected"
+        );
+
+        statusText.textContent =
+          "DMX verbonden";
+
+        connectBtn.textContent =
+          "Verbonden";
+
+        connectBtn.disabled =
+          true;
+
+
+        if (
+          typeof window.dmx.sendAll ===
+          "function"
+        ) {
+
+          window.dmx.sendAll();
+
+        }
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert(
+          "Verbinden met de DMX-interface is mislukt."
+        );
+
+      }
+
+    }
+  );
+
+
+  /* =========================================================
+     INITIALIZE
+  ========================================================= */
+
+  loadState();
+
+  render();
+
+</script>
+
+</body>
+</html>
