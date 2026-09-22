@@ -1,7 +1,13 @@
 /* =========================================================
    DMX CONTROLLER
-   DSD TECH SH-RS09B / USB-RS485
-   Web Serial API
+   DSD TECH SH-RS09B
+   DMX: 250000 baud / 8N2
+
+   Belangrijk:
+   - 1 vaste DMX-loop
+   - geen parallelle writes
+   - geen sendFrame() bij iedere sliderbeweging
+   - universe wordt opgebouwd vanuit de actuele UI-state
 ========================================================= */
 
 class DMXController {
@@ -10,21 +16,7 @@ class DMXController {
 
     this.port = null;
 
-    this.reader = null;
-
     this.writer = null;
-
-    /*
-      DMX512:
-
-      Byte 0 = Start Code
-      Byte 1-512 = DMX channels
-    */
-
-    this.universe =
-      new Uint8Array(513);
-
-    this.universe[0] = 0;
 
     this.connected = false;
 
@@ -32,15 +24,55 @@ class DMXController {
 
     this.frameTimer = null;
 
-    this.frameInterval = 33;
+    /*
+      Eén frame per seconde.
+    */
 
-    this.sending = false;
+    this.frameInterval = 1000;
+
+    /*
+      513 bytes:
+
+      byte 0   = startcode
+      byte 1   = kanaal 1
+      ...
+      byte 512 = kanaal 512
+    */
+
+    this.universe =
+      new Uint8Array(513);
+
+    this.universe[0] = 0;
+
+    /*
+      Voorkom dat meerdere frames
+      tegelijkertijd naar USB gaan.
+    */
+
+    this.writeBusy = false;
+
+    /*
+      Als tijdens een write een nieuw
+      frame nodig is, zetten we deze vlag.
+    */
+
+    this.frameRequested = false;
+
+    this.breakSupported = null;
+
+    this.frameCount = 0;
+
+    this.lastLogTime = 0;
+
+    this.lastFrameStart = 0;
+
+    this.debug = true;
 
   }
 
 
   /* =========================================================
-     CHECK SUPPORT
+     SUPPORT
   ========================================================= */
 
   isSupported() {
@@ -61,30 +93,35 @@ class DMXController {
     if (!this.isSupported()) {
 
       throw new Error(
-        "Web Serial wordt door deze browser niet ondersteund."
+        "Web Serial wordt niet ondersteund."
       );
 
     }
 
 
     /*
-      Vraag gebruiker om een seriële poort.
+      Als er al een verbinding is,
+      niet opnieuw openen.
     */
+
+    if (
+      this.connected &&
+      this.port
+    ) {
+
+      return true;
+
+    }
+
 
     this.port =
       await navigator.serial.requestPort();
 
+    console.info(
+      "[DMX] Poort geselecteerd:",
+      this.port.getInfo()
+    );
 
-    /*
-      Open de seriële verbinding.
-
-      DMX512 gebruikt:
-
-      250000 baud
-      8 databits
-      geen parity
-      2 stopbits
-    */
 
     await this.port.open({
 
@@ -103,26 +140,23 @@ class DMXController {
     });
 
 
-    this.connected = true;
-
-
-    /*
-      Writer ophalen.
-    */
-
     this.writer =
       this.port.writable.getWriter();
 
 
-    /*
-      Start continue DMX-transmissie.
-    */
+    this.connected = true;
+
+    console.info(
+      "[DMX] Verbonden: 250000 baud, 8N2, frame-interval:",
+      `${this.frameInterval} ms`
+    );
+
 
     this.startTransmission();
 
 
     console.log(
-      "DMX verbonden."
+      "DMX verbonden"
     );
 
 
@@ -143,56 +177,50 @@ class DMXController {
     this.connected = false;
 
 
-    try {
+    if (this.writer) {
 
-      if (this.writer) {
+      try {
 
         this.writer.releaseLock();
 
-        this.writer = null;
+      } catch (error) {
+
+        console.warn(
+          error
+        );
 
       }
 
-    } catch (error) {
-
-      console.warn(
-        "Writer kon niet worden vrijgegeven:",
-        error
-      );
+      this.writer = null;
 
     }
 
 
-    try {
+    if (this.port) {
 
-      if (this.port) {
+      try {
 
         await this.port.close();
 
+      } catch (error) {
+
+        console.warn(
+          "Poort sluiten:",
+          error
+        );
+
       }
-
-    } catch (error) {
-
-      console.warn(
-        "Seriële poort kon niet worden gesloten:",
-        error
-      );
 
     }
 
 
     this.port = null;
 
-
-    console.log(
-      "DMX verbinding verbroken."
-    );
-
   }
 
 
   /* =========================================================
-     START CONTINUOUS TRANSMISSION
+     START TRANSMISSION
   ========================================================= */
 
   startTransmission() {
@@ -208,25 +236,67 @@ class DMXController {
 
 
     /*
-      Eerste frame meteen versturen.
-    */
+      Eén vaste loop.
 
-    this.sendFrame();
-
-
-    /*
-      Daarna ongeveer 30 FPS.
+      De loop maakt steeds opnieuw
+      het actuele DMX-universe.
     */
 
     this.frameTimer =
       setInterval(
         () => {
 
-          this.sendFrame();
+          this.requestFrame();
 
         },
         this.frameInterval
       );
+
+
+    /*
+      Meteen een eerste frame.
+    */
+
+    this.requestFrame();
+
+  }
+
+
+  /* =========================================================
+     FRAME INTERVAL
+  ========================================================= */
+
+  setFrameInterval(milliseconds) {
+
+    const nextInterval = Math.max(
+      25,
+      Math.min(
+        5000,
+        Math.round(Number(milliseconds) || 1000)
+      )
+    );
+
+    this.frameInterval = nextInterval;
+
+    if (this.frameTimer) {
+
+      clearInterval(this.frameTimer);
+
+      this.frameTimer = setInterval(
+        () => this.requestFrame(),
+        this.frameInterval
+      );
+
+    }
+
+    if (this.debug) {
+
+      console.info(
+        "[DMX] Frame-interval ingesteld:",
+        `${this.frameInterval} ms`
+      );
+
+    }
 
   }
 
@@ -254,22 +324,56 @@ class DMXController {
 
 
   /* =========================================================
-     SET CHANNEL
+     REQUEST FRAME
   ========================================================= */
 
-  setChannel(
-    channel,
-    value
-  ) {
+  requestFrame() {
 
     /*
-      DMX kanalen lopen van 1 t/m 512.
+      Als er al een write bezig is,
+      hoeft er geen tweede write gestart
+      te worden.
+
+      Het volgende frame wordt later
+      vanzelf door de timer aangevraagd.
     */
 
-    if (
-      channel < 1 ||
-      channel > 512
-    ) {
+    if (this.writeBusy) {
+
+      this.frameRequested = true;
+
+      return;
+
+    }
+
+
+    this.frameRequested = false;
+
+
+    this.buildUniverse();
+
+
+    this.sendFrame();
+
+  }
+
+
+  /* =========================================================
+     BUILD UNIVERSE
+  ========================================================= */
+
+  buildUniverse() {
+
+    this.universe.fill(0);
+
+    this.universe[0] = 0;
+
+
+    const state =
+      this.getState();
+
+
+    if (!state) {
 
       return;
 
@@ -277,34 +381,135 @@ class DMXController {
 
 
     /*
-      DMX waarde altijd 0-255.
+      PARs
     */
 
-    value =
-      Math.max(
-        0,
-        Math.min(
-          255,
-          Math.round(value)
-        )
+    if (
+      Array.isArray(state.pars)
+    ) {
+
+      state.pars.forEach(
+        (par) => {
+
+          this.writePar(
+            par,
+            state.master
+          );
+
+        }
       );
 
+    }
 
-    this.universe[channel] =
-      value;
+
+    /*
+      Dimmers
+    */
+
+    if (
+      Array.isArray(state.dimmers)
+    ) {
+
+      state.dimmers.forEach(
+        (dimmer, index) => {
+
+          this.writeDimmer(
+            dimmer,
+            index,
+            state
+          );
+
+        }
+      );
+
+    }
+
+    this.logStateSummary(state);
 
   }
 
 
   /* =========================================================
-     CLEAR UNIVERSE
+     DEBUG LOGGING
   ========================================================= */
 
-  clearUniverse() {
+  logStateSummary(state) {
 
-    this.universe.fill(0);
+    if (!this.debug) {
+      return;
+    }
 
-    this.universe[0] = 0;
+    const now = performance.now();
+
+    if (now - this.lastLogTime < 1000) {
+      return;
+    }
+
+    this.lastLogTime = now;
+
+    const usedChannels = [];
+
+    if (Array.isArray(state.pars)) {
+
+      state.pars.forEach((par, index) => {
+
+        const address = Math.round(Number(par?.address));
+
+        if (Number.isFinite(address)) {
+
+          for (let offset = 0; offset < 4; offset++) {
+            usedChannels.push({
+              channel: address + offset,
+              source: `PAR ${index + 1}`
+            });
+          }
+
+        }
+
+      });
+
+    }
+
+    if (Array.isArray(state.dimmers)) {
+
+      state.dimmers.forEach((dimmer, index) => {
+
+        usedChannels.push({
+          channel: Number(state.parCount) * 4 + index + 1,
+          source: `Dimmer ${index + 1}`
+        });
+
+      });
+
+    }
+
+    const channelOwners = new Map();
+
+    usedChannels.forEach(({ channel, source }) => {
+
+      if (channelOwners.has(channel)) {
+
+        console.warn(
+          `[DMX] Kanaalconflict op kanaal ${channel}:`,
+          channelOwners.get(channel),
+          "en",
+          source
+        );
+
+      } else {
+
+        channelOwners.set(channel, source);
+
+      }
+
+    });
+
+    console.debug(
+      "[DMX] State:",
+      `${state.pars?.length || 0} PAR(s),`,
+      `${state.dimmers?.length || 0} dimmer(s),`,
+      `master ${state.master}%`
+    );
 
   }
 
@@ -320,10 +525,6 @@ class DMXController {
       "function"
     ) {
 
-      console.error(
-        "window.getDMXState() ontbreekt."
-      );
-
       return null;
 
     }
@@ -335,7 +536,54 @@ class DMXController {
 
 
   /* =========================================================
-     HEX COLOR -> RGB
+     SET CHANNEL
+  ========================================================= */
+
+  setChannel(
+    channel,
+    value
+  ) {
+
+    channel =
+      Math.round(
+        Number(channel)
+      );
+
+
+    value =
+      Math.round(
+        Number(value)
+      );
+
+
+    if (
+      channel < 1 ||
+      channel > 512
+    ) {
+
+      return;
+
+    }
+
+
+    value =
+      Math.max(
+        0,
+        Math.min(
+          255,
+          value
+        )
+      );
+
+
+    this.universe[channel] =
+      value;
+
+  }
+
+
+  /* =========================================================
+     HEX -> RGB
   ========================================================= */
 
   hexToRgb(hex) {
@@ -354,12 +602,11 @@ class DMXController {
 
 
     let clean =
-      hex.replace("#", "");
+      hex.replace(
+        "#",
+        ""
+      );
 
-
-    /*
-      Ondersteun eventueel #RGB.
-    */
 
     if (clean.length === 3) {
 
@@ -409,7 +656,7 @@ class DMXController {
 
 
   /* =========================================================
-     MASTER CALCULATION
+     MASTER
   ========================================================= */
 
   applyMaster(
@@ -417,456 +664,245 @@ class DMXController {
     master
   ) {
 
+    const m =
+      Math.max(
+        0,
+        Math.min(
+          100,
+          Number(master ?? 100)
+        )
+      );
+
+
     return Math.round(
-      value *
-      (master / 100)
+      Number(value) *
+      (m / 100)
     );
 
   }
 
 
   /* =========================================================
-     SEND PAR
+     WRITE PAR
+     
+     4 CHANNEL MODE:
+
+     +0 Dimmer
+     +1 Red
+     +2 Green
+     +3 Blue
+  ========================================================= */
+
+  writePar(
+    par,
+    master
+  ) {
+
+    if (!par) {
+      return;
+    }
+
+
+    let address =
+      Number(par.address);
+
+
+    /*
+      PAR heeft 4 kanalen.
+
+      Hoogste veilige startadres = 509.
+    */
+
+    if (
+      !Number.isFinite(address)
+    ) {
+
+      return;
+
+    }
+
+
+    address =
+      Math.max(
+        1,
+        Math.min(
+          509,
+          Math.round(address)
+        )
+      );
+
+
+    const rgb =
+      this.hexToRgb(
+        par.color
+      );
+
+
+    const dimmer =
+      Math.max(
+        0,
+        Math.min(
+          100,
+          Number(par.dimmer ?? 0)
+        )
+      );
+
+
+    /*
+      De master wordt alleen op de
+      output toegepast.
+    */
+
+    const finalDimmer =
+      this.applyMaster(
+        dimmer * 2.55,
+        master
+      );
+
+
+    const finalRed =
+      this.applyMaster(
+        rgb.r,
+        master
+      );
+
+
+    const finalGreen =
+      this.applyMaster(
+        rgb.g,
+        master
+      );
+
+
+    const finalBlue =
+      this.applyMaster(
+        rgb.b,
+        master
+      );
+
+
+    this.setChannel(
+      address,
+      finalDimmer
+    );
+
+
+    this.setChannel(
+      address + 1,
+      finalRed
+    );
+
+
+    this.setChannel(
+      address + 2,
+      finalGreen
+    );
+
+
+    this.setChannel(
+      address + 3,
+      finalBlue
+    );
+
+  }
+
+
+  /* =========================================================
+     WRITE GENERIC DIMMER
+     
+     Dimmers blijven na de PAR-kanalen
+     volgens de bestaande app-indeling.
+  ========================================================= */
+
+  writeDimmer(
+    dimmer,
+    index,
+    state
+  ) {
+
+    if (!dimmer) {
+      return;
+    }
+
+
+    const fallbackAddress =
+      Number(state.parCount) * 4 +
+      index +
+      1;
+
+    const address =
+      Number.isFinite(Number(dimmer.address))
+        ? Number(dimmer.address)
+        : fallbackAddress;
+
+
+    const value =
+      Math.max(
+        0,
+        Math.min(
+          100,
+          Number(dimmer.dimmer ?? 0)
+        )
+      );
+
+
+    const finalValue =
+      this.applyMaster(
+        value * 2.55,
+        state.master
+      );
+
+
+    this.setChannel(
+      address,
+      finalValue
+    );
+
+  }
+
+
+  /* =========================================================
+     COMPATIBILITY FUNCTIONS
+     
+     Deze functies bestaan nog steeds zodat
+     de HTML ze eventueel kan aanroepen.
+
+     Ze starten GEEN extra DMX-write.
+     De vaste loop pakt de wijziging vanzelf op.
   ========================================================= */
 
   sendPar(index) {
 
-    const state =
-      this.getState();
-
-
-    if (!state) {
-
-      return;
-
-    }
-
-
-    if (
-      !state.pars ||
-      !state.pars[index]
-    ) {
-
-      return;
-
-    }
-
-
-    const par =
-      state.pars[index];
-
-
     /*
-      Iedere Compact Par gebruikt
-      4 DMX kanalen:
+      Geen directe USB write.
 
-      +0 Dimmer
-      +1 Rood
-      +2 Groen
-      +3 Blauw
+      De volgende frame van de vaste
+      DMX-loop neemt de nieuwe waarde mee.
     */
 
-    const startChannel =
-      index * 4 + 1;
-
-
-    const rgb =
-      this.hexToRgb(
-        par.color
-      );
-
-
-    const master =
-      Number(state.master ?? 100);
-
-
-    const dimmer =
-      Number(par.dimmer ?? 0);
-
-
-    /*
-      PAR dimmer wordt gecombineerd
-      met de Master dimmer.
-    */
-
-    const finalDimmer =
-      this.applyMaster(
-        dimmer * 2.55,
-        master
-      );
-
-
-    const finalRed =
-      this.applyMaster(
-        rgb.r,
-        master
-      );
-
-
-    const finalGreen =
-      this.applyMaster(
-        rgb.g,
-        master
-      );
-
-
-    const finalBlue =
-      this.applyMaster(
-        rgb.b,
-        master
-      );
-
-
-    this.setChannel(
-      startChannel,
-      finalDimmer
-    );
-
-
-    this.setChannel(
-      startChannel + 1,
-      finalRed
-    );
-
-
-    this.setChannel(
-      startChannel + 2,
-      finalGreen
-    );
-
-
-    this.setChannel(
-      startChannel + 3,
-      finalBlue
-    );
-
-
-    /*
-      Als er een verbinding is,
-      direct een nieuw frame sturen.
-    */
-
-    if (this.connected) {
-
-      this.sendFrame();
-
-    }
+    this.requestFrame();
 
   }
 
-
-  /* =========================================================
-     SEND GENERIC DIMMER
-  ========================================================= */
 
   sendDimmer(index) {
 
-    const state =
-      this.getState();
-
-
-    if (!state) {
-
-      return;
-
-    }
-
-
-    if (
-      !state.dimmers ||
-      !state.dimmers[index]
-    ) {
-
-      return;
-
-    }
-
-
-    const dimmer =
-      state.dimmers[index];
-
-
     /*
-      De losse dimmers beginnen
-      na alle PAR-kanalen.
-
-      Bijvoorbeeld:
-
-      4 PARs × 4 kanalen = 16
-
-      Dimmer 1 = kanaal 17
-      Dimmer 2 = kanaal 18
-      etc.
+      Geen directe USB write.
     */
 
-    const startChannel =
-      state.parCount * 4 +
-      index +
-      1;
-
-
-    const value =
-      Number(
-        dimmer.dimmer ?? 0
-      );
-
-
-    const master =
-      Number(
-        state.master ?? 100
-      );
-
-
-    const finalValue =
-      this.applyMaster(
-        value * 2.55,
-        master
-      );
-
-
-    this.setChannel(
-      startChannel,
-      finalValue
-    );
-
-
-    if (this.connected) {
-
-      this.sendFrame();
-
-    }
+    this.requestFrame();
 
   }
 
-
-  /* =========================================================
-     SEND ALL
-  ========================================================= */
 
   sendAll() {
 
-    const state =
-      this.getState();
-
-
-    if (!state) {
-
-      return;
-
-    }
-
-
     /*
-      Universe eerst volledig leegmaken.
+      Universe opnieuw opbouwen.
     */
 
-    this.clearUniverse();
-
-
-    /*
-      PARs.
-    */
-
-    if (Array.isArray(state.pars)) {
-
-      state.pars.forEach(
-        (_, index) => {
-
-          this.writeParToUniverse(
-            index,
-            state
-          );
-
-        }
-      );
-
-    }
-
-
-    /*
-      Generic dimmers.
-    */
-
-    if (Array.isArray(state.dimmers)) {
-
-      state.dimmers.forEach(
-        (_, index) => {
-
-          this.writeDimmerToUniverse(
-            index,
-            state
-          );
-
-        }
-      );
-
-    }
-
-
-    /*
-      Verstuur compleet universe.
-    */
-
-    if (this.connected) {
-
-      this.sendFrame();
-
-    }
-
-  }
-
-
-  /* =========================================================
-     WRITE PAR TO UNIVERSE
-  ========================================================= */
-
-  writeParToUniverse(
-    index,
-    state
-  ) {
-
-    if (
-      !state.pars ||
-      !state.pars[index]
-    ) {
-
-      return;
-
-    }
-
-
-    const par =
-      state.pars[index];
-
-
-    const startChannel =
-      index * 4 + 1;
-
-
-    const rgb =
-      this.hexToRgb(
-        par.color
-      );
-
-
-    const master =
-      Number(
-        state.master ?? 100
-      );
-
-
-    const dimmer =
-      Number(
-        par.dimmer ?? 0
-      );
-
-
-    const finalDimmer =
-      this.applyMaster(
-        dimmer * 2.55,
-        master
-      );
-
-
-    const finalRed =
-      this.applyMaster(
-        rgb.r,
-        master
-      );
-
-
-    const finalGreen =
-      this.applyMaster(
-        rgb.g,
-        master
-      );
-
-
-    const finalBlue =
-      this.applyMaster(
-        rgb.b,
-        master
-      );
-
-
-    this.setChannel(
-      startChannel,
-      finalDimmer
-    );
-
-
-    this.setChannel(
-      startChannel + 1,
-      finalRed
-    );
-
-
-    this.setChannel(
-      startChannel + 2,
-      finalGreen
-    );
-
-
-    this.setChannel(
-      startChannel + 3,
-      finalBlue
-    );
-
-  }
-
-
-  /* =========================================================
-     WRITE DIMMER TO UNIVERSE
-  ========================================================= */
-
-  writeDimmerToUniverse(
-    index,
-    state
-  ) {
-
-    if (
-      !state.dimmers ||
-      !state.dimmers[index]
-    ) {
-
-      return;
-
-    }
-
-
-    const dimmer =
-      state.dimmers[index];
-
-
-    const channel =
-      state.parCount * 4 +
-      index +
-      1;
-
-
-    const value =
-      Number(
-        dimmer.dimmer ?? 0
-      );
-
-
-    const master =
-      Number(
-        state.master ?? 100
-      );
-
-
-    const finalValue =
-      this.applyMaster(
-        value * 2.55,
-        master
-      );
-
-
-    this.setChannel(
-      channel,
-      finalValue
-    );
+    this.requestFrame();
 
   }
 
@@ -877,21 +913,11 @@ class DMXController {
 
   async sendFrame() {
 
-    if (!this.connected) {
-
-      return;
-
-    }
-
-
-    if (!this.port) {
-
-      return;
-
-    }
-
-
-    if (!this.writer) {
+    if (
+      !this.connected ||
+      !this.port ||
+      !this.writer
+    ) {
 
       return;
 
@@ -899,39 +925,83 @@ class DMXController {
 
 
     /*
-      Voorkom dat meerdere frames
-      tegelijk worden geschreven.
+      Nooit twee writes tegelijkertijd.
     */
 
-    if (this.sending) {
+    if (this.writeBusy) {
+
+      this.frameRequested = true;
 
       return;
 
     }
 
 
-    this.sending = true;
+    this.writeBusy = true;
+
+    this.lastFrameStart = performance.now();
 
 
     try {
 
       /*
-        DMX vereist een BREAK vóór ieder frame.
+        Maak het universe vlak voor
+        verzending opnieuw.
 
-        Web Serial ondersteunt op sommige
-        adapters het veranderen van de
-        RS232/serial signalen.
-
-        Niet iedere USB-RS485 adapter/browser
-        ondersteunt dit echter op dezelfde manier.
+        Hierdoor worden wijzigingen die
+        tijdens de loop zijn gemaakt
+        zo snel mogelijk meegenomen.
       */
 
-      try {
+      this.buildUniverse();
 
-        await this.port.setSignals({
-          break: true
-        });
 
+      /*
+        BREAK
+
+        Niet iedere USB-RS485 adapter/browser
+        ondersteunt setSignals({break:true}).
+
+        Als het ondersteund wordt,
+        gebruiken we het.
+      */
+
+      let breakSupported = this.breakSupported !== false;
+
+
+      if (breakSupported) {
+
+        try {
+
+          await this.port.setSignals({
+            break: true
+          });
+
+          this.breakSupported = true;
+
+        } catch (error) {
+
+          this.breakSupported = false;
+
+          breakSupported = false;
+
+          console.warn(
+            "[DMX] BREAK wordt niet ondersteund door deze browser/adapter. DMX kan daardoor knipperen.",
+            error
+          );
+
+        }
+
+      }
+
+
+      if (breakSupported) {
+
+        /*
+          BREAK minimaal ongeveer 88 µs.
+
+          1 ms is ruim voldoende.
+        */
 
         await this.sleep(1);
 
@@ -941,54 +1011,82 @@ class DMXController {
         });
 
 
-        await this.sleep(1);
-
-      } catch (breakError) {
-
         /*
-          Sommige adapters ondersteunen
-          setSignals/break niet.
-
-          We blijven dan proberen het
-          universe te versturen.
+          Mark After Break.
         */
 
-        console.warn(
-          "DMX BREAK kon niet worden ingesteld:",
-          breakError
-        );
+        await this.sleep(1);
 
       }
 
 
       /*
-        Schrijf het volledige DMX-frame.
-
-        Byte 0 = startcode
-        Byte 1-512 = DMX kanalen
+        Eén volledige DMX universe-write.
       */
 
       await this.writer.write(
         this.universe
       );
 
+      this.frameCount += 1;
+
+      const frameDuration =
+        performance.now() - this.lastFrameStart;
+
+      if (
+        this.debug &&
+        (this.frameCount === 1 ||
+          this.frameCount % 40 === 0)
+      ) {
+
+        console.info(
+          "[DMX] Frame verzonden:",
+          this.frameCount,
+          `(${Math.round(frameDuration)} ms, BREAK: ${breakSupported ? "ja" : "nee"})`
+        );
+
+      }
+
     } catch (error) {
 
       console.error(
-        "DMX frame kon niet worden verzonden:",
+        "[DMX] Verzending mislukt; verbinding wordt gestopt:",
         error
       );
 
-
-      /*
-        Verbinding is mogelijk verbroken.
-      */
 
       this.connected = false;
 
     } finally {
 
-      this.sending = false;
+      this.writeBusy = false;
+
+
+      /*
+        Als er tijdens het schrijven
+        een wijziging is geweest, hoeft
+        niet gewacht te worden op de
+        volgende timer-tick.
+      */
+
+      if (
+        this.frameRequested &&
+        this.connected
+      ) {
+
+        this.frameRequested = false;
+
+        /*
+          Via microtask/timeout voorkomen
+          we recursieve calls.
+        */
+
+        setTimeout(
+          () => this.requestFrame(),
+          0
+        );
+
+      }
 
     }
 
@@ -1023,7 +1121,7 @@ window.dmx =
 
 
 /* =========================================================
-   HANDLE DEVICE DISCONNECT
+   USB DISCONNECT
 ========================================================= */
 
 if (
@@ -1032,12 +1130,7 @@ if (
 
   navigator.serial.addEventListener(
     "disconnect",
-    async (event) => {
-
-      /*
-        Alleen reageren als dit
-        daadwerkelijk onze poort is.
-      */
+    async event => {
 
       if (
         window.dmx &&
